@@ -8,8 +8,9 @@
 #include "command.h"
 #include "every.h"
 #include "turtle.h"
+#include "types.h"
 
-#define STACK_SIZE 8
+#define STACK_SIZE 16
 #define CV_COUNT 4
 #define Q_LENGTH 64
 #define TR_COUNT 4
@@ -22,6 +23,15 @@
 #define SCRIPT_COUNT 11
 #define EXEC_DEPTH 8
 #define WHILE_DEPTH 10000
+
+#define GRID_GROUP_COUNT 8
+#define GRID_MAX_DIMENSION 16
+#define GRID_BUTTON_COUNT 256
+#define GRID_FADER_COUNT 64
+#define GRID_XYPAD_COUNT 8
+#define LED_DIM -1
+#define LED_BRI -2
+#define LED_OFF -3
 
 #define METRO_MIN_MS 25
 #define METRO_MIN_UNSUPPORTED_MS 2
@@ -98,6 +108,59 @@ typedef struct {
     int16_t last_time;
 } scene_script_t;
 
+ typedef struct {
+    u8 enabled;
+    u8 group;
+    u8 x, y;
+    u8 w, h;
+    u8 background;
+    s8 script;
+} grid_common_t;
+
+typedef struct {
+    u8 enabled;
+    s8 script;
+    s16 fader_min;
+    s16 fader_max;
+} grid_group_t;
+
+typedef struct {
+    grid_common_t common;
+    u8 latch;
+    u8 state;
+    u8 press_count;
+} grid_button_t;
+
+typedef struct {
+    grid_common_t common;
+    u8 dir; // 0 - horiz 1 - vert
+    u8 value;
+} grid_fader_t;
+
+typedef struct {
+    grid_common_t common;
+    u8 value_x;
+    u8 value_y;
+} grid_xypad_t;
+
+typedef struct {
+    u8 refresh;
+    u8 rotate;
+    u8 dim;
+
+    u8 current_group;
+    u8 latest_group;
+    u8 latest_button;
+    u8 latest_fader;
+    
+    s8 leds[GRID_MAX_DIMENSION][GRID_MAX_DIMENSION];
+    grid_group_t group[GRID_GROUP_COUNT];
+    
+    grid_button_t button[GRID_BUTTON_COUNT];
+    grid_fader_t fader[GRID_FADER_COUNT];
+    grid_xypad_t xypad[GRID_XYPAD_COUNT];
+} scene_grid_t;
+
 typedef struct {
     bool initializing;
     scene_variables_t variables;
@@ -108,12 +171,15 @@ typedef struct {
     scene_script_t scripts[SCRIPT_COUNT];
     scene_turtle_t turtle;
     bool every_last;
+    scene_grid_t grid;
 } scene_state_t;
 
 extern void ss_init(scene_state_t *ss);
 extern void ss_variables_init(scene_state_t *ss);
 extern void ss_patterns_init(scene_state_t *ss);
 extern void ss_pattern_init(scene_state_t *ss, size_t pattern_no);
+extern void ss_grid_init(scene_state_t *ss);
+extern void ss_grid_common_init(grid_common_t *gc);
 
 extern void ss_set_in(scene_state_t *ss, int16_t value);
 extern void ss_set_param(scene_state_t *ss, int16_t value);

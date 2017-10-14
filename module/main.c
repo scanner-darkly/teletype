@@ -24,6 +24,7 @@
 #include "init_teletype.h"
 #include "interrupts.h"
 #include "kbd.h"
+#include "monome.h"
 #include "region.h"
 #include "screen.h"
 #include "timers.h"
@@ -34,6 +35,7 @@
 #include "edit_mode.h"
 #include "flash.h"
 #include "globals.h"
+#include "grid.h"
 #include "help_mode.h"
 #include "keyboard_helper.h"
 #include "live_mode.h"
@@ -100,6 +102,8 @@ static softTimer_t cvTimer = { .next = NULL, .prev = NULL };
 static softTimer_t adcTimer = { .next = NULL, .prev = NULL };
 static softTimer_t hidTimer = { .next = NULL, .prev = NULL };
 static softTimer_t metroTimer = { .next = NULL, .prev = NULL };
+static softTimer_t monomePollTimer = {.next = NULL, .prev = NULL };
+static softTimer_t monomeRefreshTimer = {.next = NULL, .prev = NULL };
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,6 +117,8 @@ static void keyTimer_callback(void* o);
 static void adcTimer_callback(void* o);
 static void hidTimer_callback(void* o);
 static void metroTimer_callback(void* o);
+static void monome_poll_timer_callback(void* obj);
+static void monome_refresh_timer_callback(void* obj);
 
 // event handler prototypes
 static void handler_None(int32_t data);
@@ -137,6 +143,10 @@ static void check_events(void);
 // key handling
 static void process_keypress(uint8_t key, uint8_t mod_key, bool is_held_key);
 static bool process_global_keys(uint8_t key, uint8_t mod_key, bool is_held_key);
+
+// start/stop monome polling/refresh timers
+void timers_set_monome(void);
+void timers_unset_monome(void);
 
 // other
 static void render_init(void);
@@ -220,6 +230,34 @@ void hidTimer_callback(void* o) {
 void metroTimer_callback(void* o) {
     event_t e = { .type = kEventAppCustom, .data = 0 };
     event_post(&e);
+}
+
+// monome polling callback
+static void monome_poll_timer_callback(void* obj) {
+    // asynchronous, non-blocking read
+    // UHC callback spawns appropriate events
+    ftdi_read();
+}
+
+// monome refresh callback
+static void monome_refresh_timer_callback(void* obj) {
+    if (scene_state.grid.refresh) {
+        static event_t e;
+        e.type = kEventMonomeRefresh;
+        event_post(&e);
+    }
+}
+
+// monome: start polling
+void timers_set_monome(void) {
+    timer_add(&monomePollTimer, 20, &monome_poll_timer_callback, NULL);
+    timer_add(&monomeRefreshTimer, 30, &monome_refresh_timer_callback, NULL);
+}
+
+// monome stop polling
+void timers_unset_monome(void) {
+    timer_remove(&monomePollTimer);
+    timer_remove(&monomeRefreshTimer);
 }
 
 
@@ -373,6 +411,33 @@ void handler_AppCustom(int32_t data) {
         set_metro_icon(false);
 }
 
+static void handler_FtdiConnect(s32 data) {
+    ftdi_setup();
+}
+static void handler_FtdiDisconnect(s32 data) {
+    timers_unset_monome();
+}
+
+static void handler_MonomeConnect(s32 data) {
+    timers_set_monome();
+    scene_state.grid.refresh = true;
+}
+
+static void handler_MonomePoll(s32 data) {
+    monome_read_serial();
+}
+static void handler_MonomeRefresh(s32 data) {
+    grid_refresh(&scene_state);
+    monomeFrameDirty = 0b1111;
+    (*monome_refresh)();
+}
+
+static void handler_MonomeGridKey(s32 data) {
+    u8 x, y, z;
+    monome_grid_key_parse_event_data(data, &x, &y, &z);
+    grid_process_key(&scene_state, x, y, z);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // event queue
@@ -397,6 +462,13 @@ void assign_main_event_handlers() {
     app_event_handlers[kEventScreenRefresh] = &handler_ScreenRefresh;
     app_event_handlers[kEventTimer] = &handler_EventTimer;
     app_event_handlers[kEventAppCustom] = &handler_AppCustom;
+    app_event_handlers[kEventFtdiConnect] = &handler_FtdiConnect;
+    app_event_handlers[kEventFtdiDisconnect] = &handler_FtdiDisconnect;
+    app_event_handlers[kEventMonomeConnect] = &handler_MonomeConnect;
+    app_event_handlers[kEventMonomeDisconnect] = &handler_None;
+    app_event_handlers[kEventMonomePoll] = &handler_MonomePoll;
+    app_event_handlers[kEventMonomeRefresh] = &handler_MonomeRefresh;
+    app_event_handlers[kEventMonomeGridKey] = &handler_MonomeGridKey;    
 }
 
 static void assign_msc_event_handlers(void) {
@@ -713,6 +785,7 @@ int main(void) {
     cpu_irq_enable();
 
     init_usb_host();
+    init_monome();
     init_oled();
     init_i2c_master();
 

@@ -9,6 +9,7 @@
 #include "ops/controlflow.h"
 #include "ops/delay.h"
 #include "ops/earthsea.h"
+#include "ops/grid_ops.h"
 #include "ops/hardware.h"
 #include "ops/justfriends.h"
 #include "ops/maths.h"
@@ -150,7 +151,17 @@ const tele_op_t *tele_ops[E_OP__LENGTH] = {
     &op_TI_PARAM_INIT, &op_TI_IN_INIT, &op_TI_INIT,
 
     &op_TI_PRM, &op_TI_PRM_QT, &op_TI_PRM_N, &op_TI_PRM_SCALE, &op_TI_PRM_MAP,
-    &op_TI_PRM_INIT
+    &op_TI_PRM_INIT,
+    
+    // grid
+    &op_G_RST, &op_G_CLR, &op_G_ROTATE, &op_G_DIM, &op_G_GRP, &op_G_GRP_EN,
+    &op_G_GRP_RST, &op_G_GRP_SW, &op_G_GRP_SC, &op_G_GRPI, &op_G_LED,
+    &op_G_LED_C, &op_G_REC, &op_G_BTN, &op_G_BTX, &op_G_BTN_EN, &op_G_BTN_V,
+    &op_G_BTN_L, &op_G_BTNI, &op_G_BTNV, &op_G_BTNL, &op_G_BTN_SW, &op_G_GBTN_V,
+    &op_G_GBTN_L, &op_G_FDR, &op_G_FDX, &op_G_FDR_EN, &op_G_FDR_V, &op_G_FDR_N,
+    &op_G_FDR_L, &op_G_FDRI, &op_G_FDRV, &op_G_FDRN, &op_G_FDRL, &op_G_GFDR_V,
+    &op_G_GFDR_N, &op_G_GFDR_L, &op_G_GFDR_RN, &op_G_XYP, &op_G_XYP_X, 
+    &op_G_XYP_Y
 };
 
 /////////////////////////////////////////////////////////////////

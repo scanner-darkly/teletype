@@ -65,6 +65,7 @@ CSRCS = \
 	../module/edit_mode.c   				\
 	../module/flash.c					\
 	../module/gitversion.c					\
+	../module/grid.c						\
 	../module/help_mode.c  					\
 	../module/line_editor.c					\
 	../module/live_mode.c   				\
@@ -86,6 +87,7 @@ CSRCS = \
 	../src/ops/controlflow.c				\
 	../src/ops/delay.c					\
 	../src/ops/earthsea.c					\
+	../src/ops/grid_ops.c					\
 	../src/ops/hardware.c					\
 	../src/ops/justfriends.c				\
 	../src/ops/maths.c					\
@@ -110,6 +112,7 @@ CSRCS = \
 	../libavr32/src/init_common.c				\
 	../libavr32/src/interrupts.c				\
 	../libavr32/src/kbd.c					\
+	../libavr32/src/monome.c				\
 	../libavr32/src/region.c				\
 	../libavr32/src/screen.c				\
 	../libavr32/src/timers.c				\

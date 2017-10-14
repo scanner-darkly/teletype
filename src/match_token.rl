@@ -411,6 +411,54 @@
         "TI.PRM.MAP"       => { MATCH_OP(E_OP_TI_PRM_MAP); };
         "TI.PRM.INIT"      => { MATCH_OP(E_OP_TI_PRM_INIT); };
 
+        # grid
+        "G.RST"            => { MATCH_OP(E_OP_G_RST); };
+        "G.CLR"            => { MATCH_OP(E_OP_G_CLR); };
+        "G.ROTATE"         => { MATCH_OP(E_OP_G_ROTATE); };
+        "G.DIM"            => { MATCH_OP(E_OP_G_DIM); };
+
+        "G.GRP"            => { MATCH_OP(E_OP_G_GRP); };
+        "G.GRP.EN"         => { MATCH_OP(E_OP_G_GRP_EN); };
+        "G.GRP.RST"        => { MATCH_OP(E_OP_G_GRP_RST); };
+        "G.GRP.SW"         => { MATCH_OP(E_OP_G_GRP_SW); };
+        "G.GRP.SC"         => { MATCH_OP(E_OP_G_GRP_SC); };
+        "G.GRPI"           => { MATCH_OP(E_OP_G_GRPI); };
+
+        "G.LED"            => { MATCH_OP(E_OP_G_LED); };
+        "G.LED.C"          => { MATCH_OP(E_OP_G_LED_C); };
+        "G.REC"            => { MATCH_OP(E_OP_G_REC); };
+
+        "G.BTN"            => { MATCH_OP(E_OP_G_BTN); };
+        "G.BTX"            => { MATCH_OP(E_OP_G_BTX); };
+        "G.BTN.EN"         => { MATCH_OP(E_OP_G_BTN_EN); };
+        "G.BTN.V"          => { MATCH_OP(E_OP_G_BTN_V); };
+        "G.BTN.L"          => { MATCH_OP(E_OP_G_BTN_L); };
+        "G.BTNI"           => { MATCH_OP(E_OP_G_BTNI); };
+        "G.BTNV"           => { MATCH_OP(E_OP_G_BTNV); };
+        "G.BTNL"           => { MATCH_OP(E_OP_G_BTNL); };
+        "G.BTN.SW"         => { MATCH_OP(E_OP_G_BTN_SW); };
+        "G.GBTN.V"         => { MATCH_OP(E_OP_G_GBTN_V); };
+        "G.GBTN.L"         => { MATCH_OP(E_OP_G_GBTN_L); };
+
+        "G.FDR"            => { MATCH_OP(E_OP_G_FDR); };
+        "G.FDX"            => { MATCH_OP(E_OP_G_FDX); };
+        "G.FDR.EN"         => { MATCH_OP(E_OP_G_FDR_EN); };
+        "G.FDR.V"          => { MATCH_OP(E_OP_G_FDR_V); };
+        "G.FDR.N"          => { MATCH_OP(E_OP_G_FDR_N); };
+        "G.FDR.L"          => { MATCH_OP(E_OP_G_FDR_L); };
+        "G.FDRI"           => { MATCH_OP(E_OP_G_FDRI); };
+        "G.FDRV"           => { MATCH_OP(E_OP_G_FDRV); };
+        "G.FDRN"           => { MATCH_OP(E_OP_G_FDRN); };
+        "G.FDRL"           => { MATCH_OP(E_OP_G_FDRL); };
+        "G.GFDR.V"         => { MATCH_OP(E_OP_G_GFDR_V); };
+        "G.GFDR.N"         => { MATCH_OP(E_OP_G_GFDR_N); };
+        "G.GFDR.L"         => { MATCH_OP(E_OP_G_GFDR_L); };
+        "G.GFDR.RN"        => { MATCH_OP(E_OP_G_GFDR_RN); };
+
+        "G.XYP"            => { MATCH_OP(E_OP_G_XYP); };
+        "G.XYP.X"          => { MATCH_OP(E_OP_G_XYP_X); };
+        "G.XYP.Y"          => { MATCH_OP(E_OP_G_XYP_Y); };
+
         # MODS
         # controlflow
         "IF"          => { MATCH_MOD(E_MOD_IF); };
