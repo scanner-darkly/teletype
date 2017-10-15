@@ -1,8 +1,5 @@
 #include "ops/grid_ops.h"
-
 #include "helpers.h"
-#include "monome.h"
-#include "teletype_io.h"
 
 #define SG ss->grid
 #define GB ss->grid.button[i]
@@ -26,8 +23,12 @@
     else if (level > 15)    \
         level = 15;
 
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#define max(a, b) ((a) > (b) ? (a) : (b))
+
 static void grid_common_init(grid_common_t *gc);
 static s16 scale(s16 a, s16 b, s16 x, s16 y, s16 value);
+
 
 // clang-format off
 
@@ -91,7 +92,7 @@ const tele_op_t op_G_GRP_EN  = MAKE_GET_OP(G.GRP.EN, op_G_GRP_EN_get, 2, false);
 const tele_op_t op_G_GRP_RST = MAKE_GET_OP(G.GRP.RST, op_G_GRP_RST_get, 1, false);
 const tele_op_t op_G_GRP_SW  = MAKE_GET_OP(G.GRP.SW, op_G_GRP_SW_get, 1, false);
 const tele_op_t op_G_GRP_SC  = MAKE_GET_OP(G.GRP.SC, op_G_GRP_SC_get, 2, false);
-const tele_op_t op_G_GRPI    = MAKE_GET_OP(G.GRPI, op_G_GRPI_get, 1, true);
+const tele_op_t op_G_GRPI    = MAKE_GET_OP(G.GRPI, op_G_GRPI_get, 0, true);
 
 const tele_op_t op_G_LED     = MAKE_GET_OP(G.LED, op_G_LED_get, 3, false);
 const tele_op_t op_G_LED_C   = MAKE_GET_OP(G.LED.C, op_G_LED_C_get, 2, false);
@@ -115,10 +116,10 @@ const tele_op_t op_G_FDR_EN  = MAKE_GET_OP(G.FDR.EN, op_G_FDR_EN_get, 2, false);
 const tele_op_t op_G_FDR_V   = MAKE_GET_SET_OP(G.FDR.V, op_G_FDR_V_get, op_G_FDR_V_set, 1, true);
 const tele_op_t op_G_FDR_N   = MAKE_GET_SET_OP(G.FDR.N, op_G_FDR_N_get, op_G_FDR_N_set, 1, true);
 const tele_op_t op_G_FDR_L   = MAKE_GET_OP(G.FDR.L, op_G_FDR_L_get, 2, false);
-const tele_op_t op_G_FDRI    = MAKE_GET_OP(G.FDRI, op_G_FDRI_get, 0, false);
-const tele_op_t op_G_FDRV    = MAKE_GET_OP(G.FDRV, op_G_FDRV_get, 0, false);
-const tele_op_t op_G_FDRN    = MAKE_GET_OP(G.FDRN, op_G_FDRN_get, 0, false);
-const tele_op_t op_G_FDRL    = MAKE_GET_OP(G.FDRL, op_G_FDRL_get, 1, true);
+const tele_op_t op_G_FDRI    = MAKE_GET_OP(G.FDRI, op_G_FDRI_get, 0, true);
+const tele_op_t op_G_FDRV    = MAKE_GET_OP(G.FDRV, op_G_FDRV_get, 0, true);
+const tele_op_t op_G_FDRN    = MAKE_GET_OP(G.FDRN, op_G_FDRN_get, 0, true);
+const tele_op_t op_G_FDRL    = MAKE_GET_OP(G.FDRL, op_G_FDRL_get, 1, false);
 const tele_op_t op_G_GFDR_V  = MAKE_GET_OP(G.GFDR.V, op_G_GFDR_V_get, 2, false);
 const tele_op_t op_G_GFDR_N  = MAKE_GET_OP(G.GFDR.N, op_G_GFDR_N_get, 2, false);
 const tele_op_t op_G_GFDR_L  = MAKE_GET_OP(G.GFDR.L, op_G_GFDR_L_get, 3, false);
