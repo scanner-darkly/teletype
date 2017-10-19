@@ -144,7 +144,9 @@ typedef struct {
 } grid_xypad_t;
 
 typedef struct {
-    u8 refresh;
+    u8 grid_dirty;
+    u8 scr_dirty;
+    
     u8 rotate;
     u8 dim;
 

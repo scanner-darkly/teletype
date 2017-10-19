@@ -169,26 +169,26 @@ static void op_G_RST_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
         GXY.value_y = 0;
     }
     
-    SG.refresh = true;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_CLR_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *NOTUSED(cs)) {
     for (u8 i = 0; i < GRID_MAX_DIMENSION; i++)
         for (u8 j = 0; j < GRID_MAX_DIMENSION; j++)
             SG.leds[i][j] = LED_OFF;
-    SG.refresh = true;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_ROTATE_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 rotate = cs_pop(cs);
     SG.rotate = rotate;
-    SG.refresh = true;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_DIM_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     GET_AND_CLAMP(dim, 0, 14);
     SG.dim = dim;
-    SG.refresh = true;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_GRP_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -202,7 +202,7 @@ static void op_G_GRP_EN_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
     s16 en = cs_pop(cs);
     if (group < 0 || group >= GRID_BUTTON_COUNT) return;
     SG.group[group].enabled = en;
-    SG.refresh = true;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_GRP_RST_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -235,7 +235,7 @@ static void op_G_GRP_RST_get(const void *NOTUSED(data), scene_state_t *ss, exec_
             GXY.value_y = 0;
         }
     
-    SG.refresh = true;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_GRP_SW_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -245,7 +245,7 @@ static void op_G_GRP_SW_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
     for (u8 i = 0; i < GRID_GROUP_COUNT; i++) SG.group[i].enabled = false;
     SG.group[group].enabled = true;
     
-    SG.refresh = true;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_GRP_SC_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -271,7 +271,7 @@ static void op_G_LED_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     if (y < 0 || y >= GRID_MAX_DIMENSION) return;
     
     SG.leds[x][y] = level;
-    SG.refresh = true;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_LED_C_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -282,7 +282,7 @@ static void op_G_LED_C_get(const void *NOTUSED(data), scene_state_t *ss, exec_st
     if (y < 0 || y >= GRID_MAX_DIMENSION) return;
     
     SG.leds[x][y] = LED_OFF;
-    SG.refresh = true;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_REC_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -315,7 +315,7 @@ static void op_G_REC_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
         for (s16 row = max(0, y); row < min(GRID_MAX_DIMENSION, y + h); row++)
             SG.leds[col][row] = border;
 
-    SG.refresh = true;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_BTN_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -342,7 +342,7 @@ static void op_G_BTN_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     GB.latch = latch != 0;
     // GB.state = 0;
     
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_BTX_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -381,7 +381,7 @@ static void op_G_BTX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
             // GB.state = 0;
         }
     
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_BTN_EN_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -390,7 +390,7 @@ static void op_G_BTN_EN_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
     
     if (i < 0 || i >= GRID_BUTTON_COUNT) return;
     GBC.enabled = en;
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_BTN_V_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -403,7 +403,7 @@ static void op_G_BTN_V_set(const void *NOTUSED(data), scene_state_t *ss, exec_st
     s16 value = cs_pop(cs);
     if (i < 0 || i >= GRID_BUTTON_COUNT) return;
     GB.state = value != 0;
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_BTN_L_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -411,7 +411,7 @@ static void op_G_BTN_L_get(const void *NOTUSED(data), scene_state_t *ss, exec_st
     GET_LEVEL(level);
     if (i < 0 || i >= GRID_BUTTON_COUNT) return;
     GBC.background = level;
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_BTNI_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -425,7 +425,7 @@ static void op_G_BTNV_get(const void *NOTUSED(data), scene_state_t *ss, exec_sta
 static void op_G_BTNL_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     GET_LEVEL(level);
     SG.button[SG.latest_button].common.background = level;
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_BTN_SW_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -436,7 +436,7 @@ static void op_G_BTN_SW_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
         if (GBC.group == SG.button[id].common.group) GB.state = 0;
     
     SG.button[id].state = 1;
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_GBTN_V_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -448,7 +448,7 @@ static void op_G_GBTN_V_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
 
     for (u16 i = 0; i < GRID_BUTTON_COUNT; i++)
         if (GBC.group == group) GB.state = value;
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_GBTN_L_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -464,7 +464,7 @@ static void op_G_GBTN_L_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
             GBC.background = is_odd ? odd : even;
             is_odd = !is_odd;
         }
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_FDR_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -491,7 +491,7 @@ static void op_G_FDR_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     GF.dir = dir != 0;
     // GF.value = 0;
     
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_FDX_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -530,7 +530,7 @@ static void op_G_FDX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
             // GF.value = 0;
         }
     
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_FDR_EN_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -539,7 +539,7 @@ static void op_G_FDR_EN_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
     
     if (i < 0 || i >= GRID_FADER_COUNT) return;
     GFC.enabled = en;
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_FDR_V_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -564,7 +564,7 @@ static void op_G_FDR_V_set(const void *NOTUSED(data), scene_state_t *ss, exec_st
     
     GF.value = scale(SG.group[GFC.group].fader_min, 
         SG.group[GFC.group].fader_max, 0, GF.dir ? GFC.h - 1 : GFC.w - 1, value);
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_FDR_N_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -582,7 +582,7 @@ static void op_G_FDR_N_set(const void *NOTUSED(data), scene_state_t *ss, exec_st
     else if (!GF.dir && value >= GFC.w) value = GFC.w - 1;
     
     GF.value = value;
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_FDR_L_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -590,7 +590,7 @@ static void op_G_FDR_L_get(const void *NOTUSED(data), scene_state_t *ss, exec_st
     GET_LEVEL(level);
     if (i < 0 || i >= GRID_FADER_COUNT) return;
     GFC.background = level;
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_FDRI_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -611,7 +611,7 @@ static void op_G_FDRN_get(const void *NOTUSED(data), scene_state_t *ss, exec_sta
 static void op_G_FDRL_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     GET_LEVEL(level);
     SG.fader[SG.latest_fader].common.background = level;
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_GFDR_V_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -627,7 +627,7 @@ static void op_G_GFDR_V_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
             GF.value = scale(SG.group[group].fader_min,
                 SG.group[group].fader_max, 0, GF.dir ? GFC.h - 1 : GFC.w - 1, value);
                 
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_GFDR_N_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -639,7 +639,7 @@ static void op_G_GFDR_N_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
 
     for (u16 i = 0; i < GRID_FADER_COUNT; i++)
         if (GFC.group == group) GF.value = min(GF.dir ? GFC.h - 1 : GFC.w - 1, value);
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_GFDR_L_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -655,7 +655,7 @@ static void op_G_GFDR_L_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
             GFC.background = is_odd ? odd : even;
             is_odd = !is_odd;
         }
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_GFDR_RN_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -691,7 +691,7 @@ static void op_G_XYP_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     GXY.value_x = 0;
     GXY.value_y = 0;
     
-    SG.refresh = 1;
+    SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_XYP_X_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {

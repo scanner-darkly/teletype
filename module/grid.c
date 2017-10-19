@@ -1,13 +1,26 @@
 #include "grid.h"
+#include "globals.h"
 #include "state.h"
 #include "teletype.h"
 
+#define SCREEN_MAX_X 16
+#define SCREEN_MAX_Y 8
+
+const u8 min_y[2] = {0, 8};
+const u8 max_y[2] = {7, 15};
+
+static u8 screen[SCREEN_MAX_X][SCREEN_MAX_Y];
+static u16 size_x = 16, size_y = 8;
+
+static void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page);
+static void grid_screen_refresh_led(scene_state_t *ss, u8 page);
 static bool grid_within_area(u8 x, u8 y, grid_common_t *gc);
 static void grid_fill_area(u8 x, u8 y, u8 w, u8 h, u8 level);
+static void grid_fill_area_scr(u8 x, u8 y, u8 w, u8 h, u8 level, u8 page);
 
 void grid_refresh(scene_state_t *ss) {
-    s16 size_x = monome_size_x();
-    s16 size_y = monome_size_y();
+    size_x = monome_size_x();
+    size_y = monome_size_y();
 
     grid_fill_area(0, 0, size_x, size_y, 0);
 
@@ -37,7 +50,8 @@ void grid_refresh(scene_state_t *ss) {
     }
 
     for (u16 i = 0; i < GRID_BUTTON_COUNT; i++)
-        if (GBC.enabled && SG.group[GBC.group].enabled) grid_fill_area(GBC.x, GBC.y, GBC.w, GBC.h, GB.state ? 15 : GBC.background);
+        if (GBC.enabled && SG.group[GBC.group].enabled)
+            grid_fill_area(GBC.x, GBC.y, GBC.w, GBC.h, GB.state ? 15 : GBC.background);
     
     u16 led;
     for (u16 i = 0; i < size_x; i++)
@@ -68,9 +82,8 @@ void grid_refresh(scene_state_t *ss) {
             monomeLedBuffer[total - i - 1] = temp;
         }
     }
-        
     
-    SG.refresh = 0;
+    SG.grid_dirty = 0;
 }
 
 void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z) {
@@ -127,34 +140,137 @@ void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z) {
     for (u8 i = 0; i < SCRIPT_COUNT; i++)
         if (scripts[i]) run_script(ss, i);
 
-    SG.refresh = refresh;
+    SG.grid_dirty = SG.scr_dirty = refresh;
 }
+
+void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page) {
+    for (int i = 0; i < 7; i++) region_fill(&line[i], 0);
+    switch (mode) {
+        case GRID_MODE_CTRL:
+            grid_screen_refresh_ctrl(ss, page);
+            break;
+        case GRID_MODE_LED:
+            grid_screen_refresh_led(ss, page);
+            break;
+        case GRID_MODE_OFF:
+        case GRID_MODE_LAST:
+            break;
+    }
+    SG.scr_dirty = 0;
+}
+
+void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page) {
+}
+
+void grid_screen_refresh_led(scene_state_t *ss, u8 page) {
+    grid_fill_area_scr(0, 0, SCREEN_MAX_X, SCREEN_MAX_Y, 0, 0);
+    
+    u16 x, y;
+    for (u8 i = 0; i < GRID_XYPAD_COUNT; i++) {
+        if (GXYC.enabled && SG.group[GXYC.group].enabled) {
+            if (GXY.value_x || GXY.value_y) {
+                x = GXYC.x + GXY.value_x;
+                y = GXYC.y + GXY.value_y;
+                grid_fill_area_scr(GXYC.x, y, GXYC.w, 1, GXYC.background, page);
+                grid_fill_area_scr(x, GXYC.y, 1, GXYC.h, GXYC.background, page);
+                grid_fill_area_scr(x, y, 1, 1, 15, page);
+            }
+        }
+    }
+
+    for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
+        if (GFC.enabled && SG.group[GFC.group].enabled) {
+            if (GF.dir) {
+                grid_fill_area_scr(GFC.x, GFC.y, GFC.w, GFC.h - GF.value - 1, GFC.background, page);
+                grid_fill_area_scr(GFC.x, GFC.y + GFC.h - GF.value - 1, GFC.w, GF.value + 1, 15, page);
+            } else { 
+                grid_fill_area_scr(GFC.x, GFC.y, GF.value + 1, GFC.h, 15, page);
+                grid_fill_area_scr(GFC.x + GF.value + 1, GFC.y, GFC.w - GF.value - 1, GFC.h, GFC.background, page);
+            }
+        }
+    }
+
+    for (u16 i = 0; i < GRID_BUTTON_COUNT; i++)
+        if (GBC.enabled && SG.group[GBC.group].enabled)
+            grid_fill_area_scr(GBC.x, GBC.y, GBC.w, GBC.h, GB.state ? 15 : GBC.background, page);
+    
+    for (u16 i = 0; i < SCREEN_MAX_X; i++)
+        for (u16 j = min_y[page]; j < max_y[page]; j++) {
+            if (SG.leds[i][j] >= 0)
+                screen[i][j] = SG.leds[i][j];
+            else if (SG.leds[i][j] == LED_DIM)
+                screen[i][j] >>= 1;
+            else if (SG.leds[i][j] == LED_BRI) {
+                screen[i][j] <<= 1;
+                if (screen[i][j] > 15) screen[i][j] = 15;
+                else if (screen[i][j] < 1) screen[i][j] = 1;
+            }
+        }
+        
+    for (u16 x = 0; x < SCREEN_MAX_X; x++)
+        for (u16 y = 0; y < max_y[page]; y++)
+            for (u16 i = 0; i < 6; i++)
+                for (u16 j = 0; j < 6; j++) {
+                    if ((j == 0 || j == 5) && (i == 0 || i == 5)) continue;
+                    // line[0].data[0] = screen[x][y];
+                }
+}                
+
 
 bool grid_within_area(u8 x, u8 y, grid_common_t *gc) {
     return x >= gc->x && x < (gc->x + gc->w) && y >= gc->y && y < (gc->y + gc->h);
 }
 
 void grid_fill_area(u8 x, u8 y, u8 w, u8 h, u8 level) {
-    s16 size_x = monome_size_x();
-    s16 size_y = monome_size_y();
-
     if (level == LED_OFF) return;
     
+    u16 index;
+    u16 x_end = min(size_x, x + w);
+    u16 y_end = min(size_y, y + h);
+    
     if (level == LED_DIM) {
-        for (u16 _x = max(0, x); _x < min(size_x, x + w); _x++)
-            for (u16 _y = max(0, y); _y < min(size_y, y + h); _y++)
+        for (u16 _x = x; _x < x_end; _x++)
+            for (u16 _y = y; _y < y_end; _y++)
                 monomeLedBuffer[_x + _y * size_x] >>= 1;
 
     } else if (level == LED_BRI) {
-        for (u16 _x = max(0, x); _x < min(size_x, x + w); _x++)
-            for (u16 _y = max(0, y); _y < min(size_y, y + h); _y++) {
-                monomeLedBuffer[_x + _y * size_x] <<= 1; 
-                if (monomeLedBuffer[_x + _y * size_x] > 15) monomeLedBuffer[_x + _y * size_x] = 15;
+        for (u16 _x = x; _x < x_end; _x++)
+            for (u16 _y = y; _y < y_end; _y++) {
+                index = _x + _y * size_x;
+                monomeLedBuffer[index] <<= 1; 
+                if (monomeLedBuffer[index] > 15) monomeLedBuffer[index] = 15;
             }
         
     } else {
-        for (u16 _x = max(0, x); _x < min(size_x, x + w); _x++)
-            for (u16 _y = max(0, y); _y < min(size_y, y + h); _y++)
+        for (u16 _x = x; _x < x_end; _x++)
+            for (u16 _y = y; _y < y_end; _y++)
                 monomeLedBuffer[_x + _y * size_x] = level;
+    }
+}
+
+void grid_fill_area_scr(u8 x, u8 y, u8 w, u8 h, u8 level, u8 page) {
+    if (level == LED_OFF) return;
+
+    u16 x_end = min(SCREEN_MAX_X, x + w);
+    u16 y_start = max(min_y[page], y);
+    u16 y_end = min(max_y[page], y + h);
+    
+    if (level == LED_DIM) {
+        for (u16 _x = x; _x < x_end; _x++) {
+            for (u16 _y = y_start; _y < y_end; _y++)
+                screen[_x][_y - y_start] >>= 1;
+        }
+
+    } else if (level == LED_BRI) {
+        for (u16 _x = x; _x < x_end; _x++)
+            for (u16 _y = y_start; _y < y_end; _y++) {
+                screen[_x][_y] <<= 1; 
+                if (screen[_x][_y] > 15) screen[_x][_y] = 15;
+            }
+        
+    } else {
+        for (u16 _x = x; _x < x_end; _x++)
+            for (u16 _y = y_start; _y < y_end; _y++)
+                screen[_x][_y] = level;
     }
 }

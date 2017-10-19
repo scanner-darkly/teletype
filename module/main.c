@@ -241,7 +241,7 @@ static void monome_poll_timer_callback(void* obj) {
 
 // monome refresh callback
 static void monome_refresh_timer_callback(void* obj) {
-    if (scene_state.grid.refresh) {
+    if (scene_state.grid.grid_dirty) {
         static event_t e;
         e.type = kEventMonomeRefresh;
         event_post(&e);
@@ -387,7 +387,7 @@ void handler_ScreenRefresh(int32_t data) {
         case M_PRESET_W: screen_dirty = screen_refresh_preset_w(); break;
         case M_PRESET_R: screen_dirty = screen_refresh_preset_r(); break;
         case M_HELP: screen_dirty = screen_refresh_help(); break;
-        case M_LIVE: screen_dirty = screen_refresh_live(); break;
+        case M_LIVE: screen_dirty = screen_refresh_live(&scene_state); break;
         case M_EDIT: screen_dirty = screen_refresh_edit(); break;
     }
 
@@ -420,7 +420,7 @@ static void handler_FtdiDisconnect(s32 data) {
 
 static void handler_MonomeConnect(s32 data) {
     timers_set_monome();
-    scene_state.grid.refresh = true;
+    scene_state.grid.grid_dirty = 1;
 }
 
 static void handler_MonomePoll(s32 data) {

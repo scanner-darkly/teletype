@@ -31,10 +31,13 @@ static process_result_t output;
 static error_t status;
 static char error_msg[TELE_ERROR_MSG_LENGTH];
 static bool show_welcome_message;
+static screen_grid_mode grid_mode = GRID_MODE_OFF;
+static uint8_t grid_page = 0;
 
 static const uint8_t D_INPUT = 1 << 0;
 static const uint8_t D_LIST = 1 << 1;
 static const uint8_t D_MESSAGE = 1 << 2;
+static const uint8_t D_GRID = 1 << 3;
 static const uint8_t D_ALL = 0xFF;
 static uint8_t dirty;
 
@@ -118,6 +121,11 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key) {
             dirty |= D_INPUT;
         }
     }
+    // C-g: toggle grid view
+    else if (match_ctrl(m, k, HID_G)) {
+        if (++grid_mode == GRID_MODE_LAST) grid_mode = GRID_MODE_OFF;
+        dirty |= D_GRID;
+    }
     // <enter>: execute command
     else if (match_no_mod(m, k, HID_ENTER)) {
         dirty |= D_MESSAGE;  // something will definitely happen
@@ -171,8 +179,14 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key) {
 }
 
 
-bool screen_refresh_live() {
+bool screen_refresh_live(scene_state_t *ss) {
     bool screen_dirty = false;
+    
+    if ((dirty & D_GRID) || ss->grid.scr_dirty) {
+        grid_screen_refresh(ss, grid_mode, grid_page);
+        screen_dirty = true;
+    }
+    
     if (dirty & D_INPUT) {
         line_editor_draw(&le, '>', &line[7]);
         screen_dirty = true;
@@ -218,7 +232,7 @@ bool screen_refresh_live() {
         dirty &= ~D_LIST;
     }
 
-    if ((activity != activity_prev)) {
+    if ((grid_mode == GRID_MODE_OFF) && (activity != activity_prev)) {
         region_fill(&line[0], 0);
 
         // slew icon
