@@ -7,13 +7,13 @@
 #define SCREEN_MAX_Y 8
 
 const u8 min_y[2] = {0, 8};
-const u8 max_y[2] = {7, 15};
+const u8 max_y[2] = {8, 16};
 
 static u8 screen[SCREEN_MAX_X][SCREEN_MAX_Y];
 static u16 size_x = 16, size_y = 8;
 
-static void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page);
-static void grid_screen_refresh_led(scene_state_t *ss, u8 page);
+static void grid_screen_refresh_ctrl(scene_state_t *ss, u8 full_grid, u8 page);
+static void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page);
 static bool grid_within_area(u8 x, u8 y, grid_common_t *gc);
 static void grid_fill_area(u8 x, u8 y, u8 w, u8 h, u8 level);
 static void grid_fill_area_scr(u8 x, u8 y, u8 w, u8 h, u8 level, u8 page);
@@ -143,14 +143,13 @@ void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z) {
     SG.grid_dirty = SG.scr_dirty = refresh;
 }
 
-void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page) {
-    for (int i = 0; i < 7; i++) region_fill(&line[i], 0);
+void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 full_grid, u8 page) {
     switch (mode) {
         case GRID_MODE_CTRL:
-            grid_screen_refresh_ctrl(ss, page);
+            grid_screen_refresh_ctrl(ss, full_grid, page);
             break;
         case GRID_MODE_LED:
-            grid_screen_refresh_led(ss, page);
+            grid_screen_refresh_led(ss, full_grid, page);
             break;
         case GRID_MODE_OFF:
         case GRID_MODE_LAST:
@@ -159,10 +158,10 @@ void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page) {
     SG.scr_dirty = 0;
 }
 
-void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page) {
+void grid_screen_refresh_ctrl(scene_state_t *ss, u8 full_grid, u8 page) {
 }
 
-void grid_screen_refresh_led(scene_state_t *ss, u8 page) {
+void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page) {
     grid_fill_area_scr(0, 0, SCREEN_MAX_X, SCREEN_MAX_Y, 0, 0);
     
     u16 x, y;
@@ -206,13 +205,29 @@ void grid_screen_refresh_led(scene_state_t *ss, u8 page) {
                 else if (screen[i][j] < 1) screen[i][j] = 1;
             }
         }
-        
+    
+    u16 _y, cell, size, left;
+    if (full_grid) {
+        cell = 8;
+        size = 6;
+        for (int i = 0; i < 8; i++) region_fill(&line[i], 0);
+    } else {
+        cell = 6;
+        size = 4;
+        for (int i = 0; i < 6; i++) region_fill(&line[i], 0);
+    }
+    left = (128 - (cell << 4)) >> 1;
+    
     for (u16 x = 0; x < SCREEN_MAX_X; x++)
         for (u16 y = 0; y < max_y[page]; y++)
-            for (u16 i = 0; i < 6; i++)
-                for (u16 j = 0; j < 6; j++) {
-                    if ((j == 0 || j == 5) && (i == 0 || i == 5)) continue;
-                    // line[0].data[0] = screen[x][y];
+            for (u16 i = 0; i < size; i++)
+                for (u16 j = 0; j < size; j++) {
+                    _y = y * cell + j;
+                    if (screen[x][y] == 0) {
+                        if (i == 0 || i == size - 1 || j == 0 || j == size - 1)
+                            line[_y >> 3].data[left + x * cell + i + ((_y & 7) << 7)] = 1;
+                    } else
+                        line[_y >> 3].data[left + x * cell + i + ((_y & 7) << 7)] = screen[x][y];
                 }
 }                
 

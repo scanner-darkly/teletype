@@ -22,7 +22,7 @@ typedef enum {
 
 
 extern void grid_refresh(scene_state_t *ss);
-extern void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page);
+extern void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 full_grid, u8 page);
 extern void grid_process_key(scene_state_t *ss, u8 x, u8 y, u8 z);
 
 #endif
