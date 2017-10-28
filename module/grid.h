@@ -4,6 +4,9 @@
 #include "monome.h"
 #include "state.h"
 
+#define SCREEN_MAX_X 16
+#define SCREEN_MAX_Y 8
+
 #define SG ss->grid
 #define GB ss->grid.button[i]
 #define GBC ss->grid.button[i].common
@@ -14,15 +17,16 @@
 
 typedef enum {
     GRID_MODE_OFF = 0,
-    GRID_MODE_CTRL,
     GRID_MODE_LED,
+    //GRID_MODE_CTRL,
+    GRID_MODE_FULL,
     GRID_MODE_LAST
 } screen_grid_mode;
 
 
 
 extern void grid_refresh(scene_state_t *ss);
-extern void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 full_grid, u8 page);
+extern void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page, u8 x, u8 y);
 extern void grid_process_key(scene_state_t *ss, u8 x, u8 y, u8 z);
 
 #endif

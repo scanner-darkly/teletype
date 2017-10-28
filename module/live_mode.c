@@ -32,12 +32,11 @@ static error_t status;
 static char error_msg[TELE_ERROR_MSG_LENGTH];
 static bool show_welcome_message;
 static screen_grid_mode grid_mode = GRID_MODE_OFF;
-static uint8_t grid_page = 0, full_grid = 0;
+static uint8_t grid_page = 0, grid_view_changed = 0, grid_x = 0, grid_y = 0;
 
 static const uint8_t D_INPUT = 1 << 0;
 static const uint8_t D_LIST = 1 << 1;
 static const uint8_t D_MESSAGE = 1 << 2;
-static const uint8_t D_GRID = 1 << 3;
 static const uint8_t D_ALL = 0xFF;
 static uint8_t dirty;
 
@@ -98,9 +97,17 @@ void set_live_mode() {
     history_line = -1;
     dirty = D_ALL;
     activity_prev = 0xFF;
+    grid_view_changed = true;
 }
 
-void process_live_keys(uint8_t k, uint8_t m, bool is_held_key) {
+void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, scene_state_t *ss) {
+    if (is_release) {
+        if (match_ctrl(m, k, HID_SPACEBAR)) {
+            grid_process_key(ss, grid_x, grid_y, 0);
+        }
+        return;
+    }
+    
     // <down> or C-n: history next
     if (match_no_mod(m, k, HID_DOWN) || match_ctrl(m, k, HID_N)) {
         if (history_line > 0) {
@@ -121,15 +128,35 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key) {
             dirty |= D_INPUT;
         }
     }
-    // C-g: toggle grid view
+    // C-G: toggle grid view
     else if (match_ctrl(m, k, HID_G)) {
-        if (++grid_mode == GRID_MODE_LAST) grid_mode = GRID_MODE_OFF;
-        dirty |= D_GRID;
+        if (++grid_mode == GRID_MODE_LAST) {
+            grid_mode = GRID_MODE_OFF;
+            set_live_mode();
+        } else grid_view_changed = true;
     }
-    // Caps Lock: toggle full grid view
-    else if (match_no_mod(m, k, HID_CAPS_LOCK)) {
-        full_grid = !full_grid;
-        dirty |= D_GRID;
+    // C-<up>: move grid cursor
+    else if (match_ctrl(m, k, HID_UP)) {
+        grid_y = (grid_y + SCREEN_MAX_Y - 1) % SCREEN_MAX_Y;
+        grid_view_changed = true;
+    }
+    // C-<down>: move grid cursor
+    else if (match_ctrl(m, k, HID_DOWN)) {
+        grid_y = (grid_y + 1) % SCREEN_MAX_Y;
+        grid_view_changed = true;
+    }
+    // C-<left>: move grid cursor
+    else if (match_ctrl(m, k, HID_LEFT)) {
+        grid_x = (grid_x + SCREEN_MAX_X - 1) % SCREEN_MAX_X;
+        grid_view_changed = true;
+    }
+    // C-<right>: move grid cursor
+    else if (match_ctrl(m, k, HID_RIGHT)) {
+        grid_x = (grid_x + 1) % SCREEN_MAX_X;
+        grid_view_changed = true;
+    }
+    else if (match_ctrl(m, k, HID_SPACEBAR)) {
+        grid_process_key(ss, grid_x, grid_y, 1);
     }
     // <enter>: execute command
     else if (match_no_mod(m, k, HID_ENTER)) {
@@ -187,15 +214,13 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key) {
 
 bool screen_refresh_live(scene_state_t *ss) {
     bool screen_dirty = false;
-    bool update_activity = false;
     
-    if ((dirty & D_GRID) || ss->grid.scr_dirty) {
-        grid_screen_refresh(ss, grid_mode, full_grid, grid_page);
+    if (grid_mode != GRID_MODE_OFF && (grid_view_changed || ss->grid.scr_dirty)) {
+        grid_view_changed = 0;
         screen_dirty = true;
-        dirty &= ~D_GRID;
-        if (full_grid) return true;
-        update_activity = true;
+        grid_screen_refresh(ss, grid_mode, grid_page, grid_x, grid_y);
     }
+    if (grid_mode == GRID_MODE_FULL) return true;
     
     if (dirty & D_INPUT) {
         line_editor_draw(&le, '>', &line[7]);
@@ -241,73 +266,73 @@ bool screen_refresh_live(scene_state_t *ss) {
         dirty &= ~D_LIST;
     }
 
-    if (update_activity || activity != activity_prev) {
-        if (!update_activity) region_fill(&line[0], 0);
+    if (activity != activity_prev && grid_mode == GRID_MODE_OFF) {
+        region_fill(&line[0], 0);
 
         // slew icon
         uint8_t slew_fg = activity & A_SLEW ? 15 : 1;
-        line[1].data[122 + 0 + 512] = slew_fg;
-        line[1].data[122 + 1 + 384] = slew_fg;
-        line[1].data[122 + 2 + 256] = slew_fg;
-        line[1].data[122 + 3 + 128] = slew_fg;
-        line[1].data[122 + 4 + 0] = slew_fg;
-
+        line[0].data[98 + 0 + 512] = slew_fg;
+        line[0].data[98 + 1 + 384] = slew_fg;
+        line[0].data[98 + 2 + 256] = slew_fg;
+        line[0].data[98 + 3 + 128] = slew_fg;
+        line[0].data[98 + 4 + 0] = slew_fg;
+        
         // delay icon
         uint8_t delay_fg = activity & A_DELAY ? 15 : 1;
-        line[2].data[122 + 0 + 0] = delay_fg;
-        line[2].data[122 + 1 + 0] = delay_fg;
-        line[2].data[122 + 2 + 0] = delay_fg;
-        line[2].data[122 + 3 + 0] = delay_fg;
-        line[2].data[122 + 4 + 0] = delay_fg;
-        line[2].data[122 + 0 + 128] = delay_fg;
-        line[2].data[122 + 0 + 256] = delay_fg;
-        line[2].data[122 + 0 + 384] = delay_fg;
-        line[2].data[122 + 0 + 512] = delay_fg;
-        line[2].data[122 + 4 + 128] = delay_fg;
-        line[2].data[122 + 4 + 256] = delay_fg;
-        line[2].data[122 + 4 + 384] = delay_fg;
-        line[2].data[122 + 4 + 512] = delay_fg;
+        line[0].data[106 + 0 + 0] = delay_fg;
+        line[0].data[106 + 1 + 0] = delay_fg;
+        line[0].data[106 + 2 + 0] = delay_fg;
+        line[0].data[106 + 3 + 0] = delay_fg;
+        line[0].data[106 + 4 + 0] = delay_fg;
+        line[0].data[106 + 0 + 128] = delay_fg;
+        line[0].data[106 + 0 + 256] = delay_fg;
+        line[0].data[106 + 0 + 384] = delay_fg;
+        line[0].data[106 + 0 + 512] = delay_fg;
+        line[0].data[106 + 4 + 128] = delay_fg;
+        line[0].data[106 + 4 + 256] = delay_fg;
+        line[0].data[106 + 4 + 384] = delay_fg;
+        line[0].data[106 + 4 + 512] = delay_fg;
 
         // queue icon
         uint8_t stack_fg = activity & A_STACK ? 15 : 1;
-        line[3].data[122 + 0 + 0] = stack_fg;
-        line[3].data[122 + 1 + 0] = stack_fg;
-        line[3].data[122 + 2 + 0] = stack_fg;
-        line[3].data[122 + 3 + 0] = stack_fg;
-        line[3].data[122 + 4 + 0] = stack_fg;
-        line[3].data[122 + 0 + 256] = stack_fg;
-        line[3].data[122 + 1 + 256] = stack_fg;
-        line[3].data[122 + 2 + 256] = stack_fg;
-        line[3].data[122 + 3 + 256] = stack_fg;
-        line[3].data[122 + 4 + 256] = stack_fg;
-        line[3].data[122 + 0 + 512] = stack_fg;
-        line[3].data[122 + 1 + 512] = stack_fg;
-        line[3].data[122 + 2 + 512] = stack_fg;
-        line[3].data[122 + 3 + 512] = stack_fg;
-        line[3].data[122 + 4 + 512] = stack_fg;
+        line[0].data[114 + 0 + 0] = stack_fg;
+        line[0].data[114 + 1 + 0] = stack_fg;
+        line[0].data[114 + 2 + 0] = stack_fg;
+        line[0].data[114 + 3 + 0] = stack_fg;
+        line[0].data[114 + 4 + 0] = stack_fg;
+        line[0].data[114 + 0 + 256] = stack_fg;
+        line[0].data[114 + 1 + 256] = stack_fg;
+        line[0].data[114 + 2 + 256] = stack_fg;
+        line[0].data[114 + 3 + 256] = stack_fg;
+        line[0].data[114 + 4 + 256] = stack_fg;
+        line[0].data[114 + 0 + 512] = stack_fg;
+        line[0].data[114 + 1 + 512] = stack_fg;
+        line[0].data[114 + 2 + 512] = stack_fg;
+        line[0].data[114 + 3 + 512] = stack_fg;
+        line[0].data[114 + 4 + 512] = stack_fg;
 
         // metro icon
         uint8_t metro_fg = activity & A_METRO ? 15 : 1;
-        line[4].data[122 + 0 + 0] = metro_fg;
-        line[4].data[122 + 0 + 128] = metro_fg;
-        line[4].data[122 + 0 + 256] = metro_fg;
-        line[4].data[122 + 0 + 384] = metro_fg;
-        line[4].data[122 + 0 + 512] = metro_fg;
-        line[4].data[122 + 1 + 128] = metro_fg;
-        line[4].data[122 + 2 + 256] = metro_fg;
-        line[4].data[122 + 3 + 128] = metro_fg;
-        line[4].data[122 + 4 + 0] = metro_fg;
-        line[4].data[122 + 4 + 128] = metro_fg;
-        line[4].data[122 + 4 + 256] = metro_fg;
-        line[4].data[122 + 4 + 384] = metro_fg;
-        line[4].data[122 + 4 + 512] = metro_fg;
+        line[0].data[122 + 0 + 0] = metro_fg;
+        line[0].data[122 + 0 + 128] = metro_fg;
+        line[0].data[122 + 0 + 256] = metro_fg;
+        line[0].data[122 + 0 + 384] = metro_fg;
+        line[0].data[122 + 0 + 512] = metro_fg;
+        line[0].data[122 + 1 + 128] = metro_fg;
+        line[0].data[122 + 2 + 256] = metro_fg;
+        line[0].data[122 + 3 + 128] = metro_fg;
+        line[0].data[122 + 4 + 0] = metro_fg;
+        line[0].data[122 + 4 + 128] = metro_fg;
+        line[0].data[122 + 4 + 256] = metro_fg;
+        line[0].data[122 + 4 + 384] = metro_fg;
+        line[0].data[122 + 4 + 512] = metro_fg;
 
         // mutes
         for (size_t i = 0; i < 8; i++) {
             // make it staggered to match how the device looks
             size_t stagger = i % 2 ? 384 : 128;
             uint8_t mute_fg = ss_get_mute(&scene_state, i) ? 15 : 1;
-            line[0].data[120 + i + stagger] = mute_fg;
+            line[0].data[87 + i + stagger] = mute_fg;
         }
 
         activity_prev = activity;

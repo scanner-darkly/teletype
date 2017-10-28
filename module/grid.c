@@ -3,17 +3,14 @@
 #include "state.h"
 #include "teletype.h"
 
-#define SCREEN_MAX_X 16
-#define SCREEN_MAX_Y 8
-
 const u8 min_y[2] = {0, 8};
 const u8 max_y[2] = {8, 16};
 
 static u8 screen[SCREEN_MAX_X][SCREEN_MAX_Y];
 static u16 size_x = 16, size_y = 8;
 
-static void grid_screen_refresh_ctrl(scene_state_t *ss, u8 full_grid, u8 page);
-static void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page);
+static void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page);
+static void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 sel_x, u8 sel_y);
 static bool grid_within_area(u8 x, u8 y, grid_common_t *gc);
 static void grid_fill_area(u8 x, u8 y, u8 w, u8 h, u8 level);
 static void grid_fill_area_scr(u8 x, u8 y, u8 w, u8 h, u8 level, u8 page);
@@ -143,13 +140,16 @@ void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z) {
     SG.grid_dirty = SG.scr_dirty = refresh;
 }
 
-void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 full_grid, u8 page) {
+void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page, u8 x, u8 y) {
     switch (mode) {
-        case GRID_MODE_CTRL:
-            grid_screen_refresh_ctrl(ss, full_grid, page);
-            break;
         case GRID_MODE_LED:
-            grid_screen_refresh_led(ss, full_grid, page);
+            grid_screen_refresh_led(ss, 0, page, x, y);
+            break;
+        //case GRID_MODE_CTRL:
+        //    grid_screen_refresh_ctrl(ss, page);
+        //    break;
+        case GRID_MODE_FULL:
+            grid_screen_refresh_led(ss, 1, page, x, y);
             break;
         case GRID_MODE_OFF:
         case GRID_MODE_LAST:
@@ -158,10 +158,31 @@ void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 full_grid,
     SG.scr_dirty = 0;
 }
 
-void grid_screen_refresh_ctrl(scene_state_t *ss, u8 full_grid, u8 page) {
+void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page) {
+    /*
+    grid_fill_area_scr(0, 0, SCREEN_MAX_X, SCREEN_MAX_Y, 0, 0);
+    
+    u8 level;
+    for (u16 i = 0; i < GRID_BUTTON_COUNT; i++) {
+        if (!SG.group[GBC.group].enabled) continue;
+        level = (GBC.enabled ? (GB.state ? 15 : 8) : 1) << 4;
+        if (GBC.w == 1 && GBC.h == 1) {
+            grid_fill_area_scr(GBC.x, GBC.y, 1, 1, level + 1, page);
+        } else if (GBC.w == 1 && GBC.h > 1) {
+            grid_fill_area_scr(GBC.x, GBC.y + 1, 1, GBC.h - 2, level + 2, page);
+            grid_fill_area_scr(GBC.x, GBC.y, 1, 1, level + 3, page);
+            grid_fill_area_scr(GBC.x, GBC.y + GBC.h - 1, 1, 1, level + 4, page);
+        } else if (GBC.w > 1 && GBC.h == 1) {
+            grid_fill_area_scr(GBC.x + 1, GBC.y, GBC.w - 2, 1, level + 5, page);
+            grid_fill_area_scr(GBC.x, GBC.y, 1, 1, level + 6, page);
+            grid_fill_area_scr(GBC.x + GBC.w - 1, GBC.y, 1, 1, level + 7, page);
+        } else {
+        }
+    }
+    */
 }
 
-void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page) {
+void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 sel_x, u8 sel_y) {
     grid_fill_area_scr(0, 0, SCREEN_MAX_X, SCREEN_MAX_Y, 0, 0);
     
     u16 x, y;
@@ -222,13 +243,21 @@ void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page) {
         for (u16 y = 0; y < max_y[page]; y++)
             for (u16 i = 0; i < size; i++)
                 for (u16 j = 0; j < size; j++) {
-                    _y = y * cell + j;
+                    _y = y * cell + j + 1;
                     if (screen[x][y] == 0) {
                         if (i == 0 || i == size - 1 || j == 0 || j == size - 1)
-                            line[_y >> 3].data[left + x * cell + i + ((_y & 7) << 7)] = 1;
+                            line[_y >> 3].data[left + x * cell + i + ((_y & 7) << 7) + 1] = 1;
                     } else
-                        line[_y >> 3].data[left + x * cell + i + ((_y & 7) << 7)] = screen[x][y];
+                        line[_y >> 3].data[left + x * cell + i + ((_y & 7) << 7) + 1] = screen[x][y];
                 }
+
+    for (u16 i = 0; i < cell; i++)
+        for (u16 j = 0; j < cell; j++) {
+            if (i == 0 || i == cell - 1 || j == 0 || j == cell - 1) {
+                _y = sel_y * cell + j;
+                line[_y >> 3].data[left + sel_x * cell + i + ((_y & 7) << 7)] = 8;
+            }
+        }
 }                
 
 

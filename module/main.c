@@ -141,7 +141,7 @@ static void assign_msc_event_handlers(void);
 static void check_events(void);
 
 // key handling
-static void process_keypress(uint8_t key, uint8_t mod_key, bool is_held_key);
+static void process_keypress(uint8_t key, uint8_t mod_key, bool is_held_key, bool is_release);
 static bool process_global_keys(uint8_t key, uint8_t mod_key, bool is_held_key);
 
 // start/stop monome polling/refresh timers
@@ -311,7 +311,7 @@ void handler_KeyTimer(int32_t data) {
 
     if (hold_key) {
         if (hold_key_count > 4)
-            process_keypress(hold_key, mod_key, true);
+            process_keypress(hold_key, mod_key, true, false);
         else
             hold_key_count++;
     }
@@ -333,8 +333,9 @@ void handler_HidTimer(int32_t data) {
             if (frame[i] == 0) {
                 mod_key = frame[0];
                 if (i == 2) {
-                    hold_key = 0;
                     hold_key_count = 0;
+                    process_keypress(hold_key, mod_key, false, true);
+                    hold_key = 0;
                 }
 
                 break;
@@ -343,7 +344,7 @@ void handler_HidTimer(int32_t data) {
             if (frame_compare(frame[i]) == false) {
                 hold_key = frame[i];
                 hold_key_count = 0;
-                process_keypress(hold_key, mod_key, false);
+                process_keypress(hold_key, mod_key, false, false);
             }
         }
 
@@ -533,13 +534,20 @@ void set_last_mode() {
 ////////////////////////////////////////////////////////////////////////////////
 // key handling
 
-void process_keypress(uint8_t key, uint8_t mod_key, bool is_held_key) {
+void process_keypress(uint8_t key, uint8_t mod_key, bool is_held_key, bool is_release) {
+    // release is a special case for live mode
+    if (is_release) {
+        if (mode == M_LIVE) 
+            process_live_keys(key, mod_key, is_held_key, true, &scene_state);
+        return;
+    }
+    
     // first try global keys
     if (process_global_keys(key, mod_key, is_held_key)) return;
 
     switch (mode) {
         case M_EDIT: process_edit_keys(key, mod_key, is_held_key); break;
-        case M_LIVE: process_live_keys(key, mod_key, is_held_key); break;
+        case M_LIVE: process_live_keys(key, mod_key, is_held_key, false, &scene_state); break;
         case M_PATTERN: process_pattern_keys(key, mod_key, is_held_key); break;
         case M_PRESET_W:
             process_preset_w_keys(key, mod_key, is_held_key);
