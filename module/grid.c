@@ -54,6 +54,8 @@ void grid_refresh(scene_state_t *ss) {
     for (u16 i = 0; i < size_x; i++)
         for (u16 j = 0; j < size_y; j++) {
             led = j * size_x + i;
+            if (led >= MONOME_MAX_LED_BYTES) continue;
+            
             if (SG.leds[i][j] >= 0)
                 monomeLedBuffer[led] = SG.leds[i][j];
             else if (SG.leds[i][j] == LED_DIM)
@@ -72,6 +74,7 @@ void grid_refresh(scene_state_t *ss) {
     
     if (SG.rotate) {
         u16 total = size_x * size_y;
+        if (total > MONOME_MAX_LED_BYTES) total = MONOME_MAX_LED_BYTES;
         u8 temp;
         for (u16 i = 0; i < (total >> 1); i++) {
             temp = monomeLedBuffer[i];
@@ -116,12 +119,8 @@ void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z) {
         if (GBC.enabled && SG.group[GBC.group].enabled && grid_within_area(x, y, &GBC)) {
             if (GB.latch) {
                 if (z) {
-                    if (++GB.press_count == 1) {
-                        GB.state = !GB.state;
-                        if (GBC.script != -1) scripts[GBC.script] = 1;
-                    }
-                } else {
-                    GB.press_count--;
+                    GB.state = !GB.state;
+                    if (GBC.script != -1) scripts[GBC.script] = 1;
                 }
             } else {
                 GB.state = z;
@@ -274,21 +273,27 @@ void grid_fill_area(u8 x, u8 y, u8 w, u8 h, u8 level) {
     
     if (level == LED_DIM) {
         for (u16 _x = x; _x < x_end; _x++)
-            for (u16 _y = y; _y < y_end; _y++)
-                monomeLedBuffer[_x + _y * size_x] >>= 1;
+            for (u16 _y = y; _y < y_end; _y++) {
+                index = _x + _y * size_x;
+                if (index < MONOME_MAX_LED_BYTES) monomeLedBuffer[index] >>= 1;
+            }
 
     } else if (level == LED_BRI) {
         for (u16 _x = x; _x < x_end; _x++)
             for (u16 _y = y; _y < y_end; _y++) {
                 index = _x + _y * size_x;
-                monomeLedBuffer[index] <<= 1; 
-                if (monomeLedBuffer[index] > 15) monomeLedBuffer[index] = 15;
+                if (index < MONOME_MAX_LED_BYTES) {
+                    monomeLedBuffer[index] <<= 1; 
+                    if (monomeLedBuffer[index] > 15) monomeLedBuffer[index] = 15;
+                }
             }
         
     } else {
         for (u16 _x = x; _x < x_end; _x++)
-            for (u16 _y = y; _y < y_end; _y++)
-                monomeLedBuffer[_x + _y * size_x] = level;
+            for (u16 _y = y; _y < y_end; _y++) {
+                index = _x + _y * size_x;
+                if (index < MONOME_MAX_LED_BYTES) monomeLedBuffer[index] = level;
+            }
     }
 }
 

@@ -85,7 +85,6 @@ void ss_grid_init(scene_state_t *ss) {
         ss_grid_common_init(&(ss->grid.button[i].common));
         ss->grid.button[i].latch = 0;
         ss->grid.button[i].state = 0;
-        ss->grid.button[i].press_count = 0;
     }
 
     for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
