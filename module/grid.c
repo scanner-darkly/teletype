@@ -283,16 +283,21 @@ void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8
         for (int i = 0; i < 6; i++) region_fill(&line[i], 0);
     }
     
+    u8 _line;
+    u16 _data;
     for (u16 x = 0; x < SCREEN_MAX_X; x++)
         for (u16 y = 0; y < max_y[page]; y++)
             for (u16 i = 0; i < size; i++)
                 for (u16 j = 0; j < size; j++) {
                     _y = y * cell + j + 1;
+                    _line = _y >> 3;
+                    _data = left + x * cell + i + ((_y & 7) << 7) + 1;
+                    if (_line > 7 || _data > 1023) continue;
                     if (screen[x][y] == 0) {
                         if (i == 0 || i == size - 1 || j == 0 || j == size - 1)
-                            line[_y >> 3].data[left + x * cell + i + ((_y & 7) << 7) + 1] = 1;
+                            line[_line].data[_data] = 1;
                     } else
-                        line[_y >> 3].data[left + x * cell + i + ((_y & 7) << 7) + 1] = screen[x][y];
+                        line[_line].data[_data] = screen[x][y];
                 }
 
     u16 area_x, area_y, area_w, area_h;
@@ -315,7 +320,10 @@ void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8
         for (u16 j = 0; j < area_h; j++) {
             if (i == 0 || i == area_w - 1 || j == 0 || j == area_h - 1) {
                 _y = area_y + j;
-                line[_y >> 3].data[left + i + area_x + ((_y & 7) << 7)] = 8;
+                _line = _y >> 3;
+                _data = left + i + area_x + ((_y & 7) << 7);
+                if (_line > 7 || _data > 1023) continue;
+                line[_line].data[_data] = 8;
             }
         }
 }                
