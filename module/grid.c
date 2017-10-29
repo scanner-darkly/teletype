@@ -1,7 +1,9 @@
+#include "font.h"
 #include "grid.h"
 #include "globals.h"
 #include "state.h"
 #include "teletype.h"
+#include "util.h"
 
 const u8 min_y[2] = {0, 8};
 const u8 max_y[2] = {8, 16};
@@ -9,8 +11,9 @@ const u8 max_y[2] = {8, 16};
 static u8 screen[SCREEN_MAX_X][SCREEN_MAX_Y];
 static u16 size_x = 16, size_y = 8;
 
-static void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page);
-static void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 sel_x, u8 sel_y);
+static void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u8 y2);
+static void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8 y1, u8 x2, u8 y2);
+static void grid_screen_refresh_info(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u8 y2);
 static bool grid_within_area(u8 x, u8 y, grid_common_t *gc);
 static void grid_fill_area(u8 x, u8 y, u8 w, u8 h, u8 level);
 static void grid_fill_area_scr(u8 x, u8 y, u8 w, u8 h, u8 level, u8 page);
@@ -139,16 +142,57 @@ void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z) {
     SG.grid_dirty = SG.scr_dirty = refresh;
 }
 
-void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page, u8 x, u8 y) {
+bool grid_within_area(u8 x, u8 y, grid_common_t *gc) {
+    return x >= gc->x && x < (gc->x + gc->w) && y >= gc->y && y < (gc->y + gc->h);
+}
+
+void grid_fill_area(u8 x, u8 y, u8 w, u8 h, u8 level) {
+    if (level == LED_OFF) return;
+    
+    u16 index;
+    u16 x_end = min(size_x, x + w);
+    u16 y_end = min(size_y, y + h);
+    
+    if (level == LED_DIM) {
+        for (u16 _x = x; _x < x_end; _x++)
+            for (u16 _y = y; _y < y_end; _y++) {
+                index = _x + _y * size_x;
+                if (index < MONOME_MAX_LED_BYTES) monomeLedBuffer[index] >>= 1;
+            }
+
+    } else if (level == LED_BRI) {
+        for (u16 _x = x; _x < x_end; _x++)
+            for (u16 _y = y; _y < y_end; _y++) {
+                index = _x + _y * size_x;
+                if (index < MONOME_MAX_LED_BYTES) {
+                    monomeLedBuffer[index] <<= 1; 
+                    if (monomeLedBuffer[index] > 15) monomeLedBuffer[index] = 15;
+                }
+            }
+        
+    } else {
+        for (u16 _x = x; _x < x_end; _x++)
+            for (u16 _y = y; _y < y_end; _y++) {
+                index = _x + _y * size_x;
+                if (index < MONOME_MAX_LED_BYTES) monomeLedBuffer[index] = level;
+            }
+    }
+}
+
+// screen functions
+
+void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page, u8 x1, u8 y1, u8 x2, u8 y2) {
     switch (mode) {
         case GRID_MODE_LED:
-            grid_screen_refresh_led(ss, 0, page, x, y);
+            grid_screen_refresh_led(ss, 0, page, x1, y1, x2, y2);
+            grid_screen_refresh_info(ss, page, x1, y1, x2, y2);
             break;
         //case GRID_MODE_CTRL:
         //    grid_screen_refresh_ctrl(ss, page);
+        //    grid_screen_refresh_info(ss, page, x1, y1, x2, y2);
         //    break;
         case GRID_MODE_FULL:
-            grid_screen_refresh_led(ss, 1, page, x, y);
+            grid_screen_refresh_led(ss, 1, page, x1, y1, x2, y2);
             break;
         case GRID_MODE_OFF:
         case GRID_MODE_LAST:
@@ -157,7 +201,7 @@ void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page, u8 x
     SG.scr_dirty = 0;
 }
 
-void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page) {
+void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u8 y2) {
     /*
     grid_fill_area_scr(0, 0, SCREEN_MAX_X, SCREEN_MAX_Y, 0, 0);
     
@@ -181,7 +225,7 @@ void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page) {
     */
 }
 
-void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 sel_x, u8 sel_y) {
+void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8 y1, u8 x2, u8 y2) {
     grid_fill_area_scr(0, 0, SCREEN_MAX_X, SCREEN_MAX_Y, 0, 0);
     
     u16 x, y;
@@ -230,13 +274,14 @@ void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 sel_x,
     if (full_grid) {
         cell = 8;
         size = 6;
+        left = 0;
         for (int i = 0; i < 8; i++) region_fill(&line[i], 0);
     } else {
         cell = 6;
         size = 4;
+        left = 10;
         for (int i = 0; i < 6; i++) region_fill(&line[i], 0);
     }
-    left = (128 - (cell << 4)) >> 1;
     
     for (u16 x = 0; x < SCREEN_MAX_X; x++)
         for (u16 y = 0; y < max_y[page]; y++)
@@ -250,51 +295,180 @@ void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 sel_x,
                         line[_y >> 3].data[left + x * cell + i + ((_y & 7) << 7) + 1] = screen[x][y];
                 }
 
-    for (u16 i = 0; i < cell; i++)
-        for (u16 j = 0; j < cell; j++) {
-            if (i == 0 || i == cell - 1 || j == 0 || j == cell - 1) {
-                _y = sel_y * cell + j;
-                line[_y >> 3].data[left + sel_x * cell + i + ((_y & 7) << 7)] = 8;
+    u16 area_x, area_y, area_w, area_h;
+    if (x1 < x2) {
+        area_x = x1 * cell;
+        area_w = (x2 + 1 - x1) * cell;
+    } else {
+        area_x = x2 * cell;
+        area_w = (x1 + 1 - x2) * cell;
+    }
+    if (y1 < y2) {
+        area_y = y1 * cell;
+        area_h = (y2 + 1 - y1) * cell;
+    } else {
+        area_y = y2 * cell;
+        area_h = (y1 + 1 - y2) * cell;
+    }
+    
+    for (u16 i = 0; i < area_w; i++)
+        for (u16 j = 0; j < area_h; j++) {
+            if (i == 0 || i == area_w - 1 || j == 0 || j == area_h - 1) {
+                _y = area_y + j;
+                line[_y >> 3].data[left + i + area_x + ((_y & 7) << 7)] = 8;
             }
         }
 }                
 
+static void grid_screen_refresh_info(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u8 y2) {
+    char s[32];
+    u16 area_x, area_y, area_w, area_h;
 
-bool grid_within_area(u8 x, u8 y, grid_common_t *gc) {
-    return x >= gc->x && x < (gc->x + gc->w) && y >= gc->y && y < (gc->y + gc->h);
-}
-
-void grid_fill_area(u8 x, u8 y, u8 w, u8 h, u8 level) {
-    if (level == LED_OFF) return;
-    
-    u16 index;
-    u16 x_end = min(size_x, x + w);
-    u16 y_end = min(size_y, y + h);
-    
-    if (level == LED_DIM) {
-        for (u16 _x = x; _x < x_end; _x++)
-            for (u16 _y = y; _y < y_end; _y++) {
-                index = _x + _y * size_x;
-                if (index < MONOME_MAX_LED_BYTES) monomeLedBuffer[index] >>= 1;
-            }
-
-    } else if (level == LED_BRI) {
-        for (u16 _x = x; _x < x_end; _x++)
-            for (u16 _y = y; _y < y_end; _y++) {
-                index = _x + _y * size_x;
-                if (index < MONOME_MAX_LED_BYTES) {
-                    monomeLedBuffer[index] <<= 1; 
-                    if (monomeLedBuffer[index] > 15) monomeLedBuffer[index] = 15;
-                }
-            }
-        
+    if (x1 < x2) {
+        area_x = x1;
+        area_w = x2 + 1 - x1;
     } else {
-        for (u16 _x = x; _x < x_end; _x++)
-            for (u16 _y = y; _y < y_end; _y++) {
-                index = _x + _y * size_x;
-                if (index < MONOME_MAX_LED_BYTES) monomeLedBuffer[index] = level;
-            }
+        area_x = x2;
+        area_w = x1 + 1 - x2;
     }
+    if (y1 < y2) {
+        area_y = y1;
+        area_h = y2 + 1 - y1;
+    } else {
+        area_y = y2;
+        area_h = y1 + 1 - y2;
+    }
+
+    s[1] = 0;
+    s[0] = 'X';
+    font_string_region_clip_right(&line[2], s, 127, 0, 1, 0);
+    s[0] = 'Y';
+    font_string_region_clip_right(&line[3], s, 127, 0, 1, 0);
+    s[0] = 'W';
+    font_string_region_clip_right(&line[4], s, 128, 0, 1, 0);
+    s[0] = 'H';
+    font_string_region_clip_right(&line[5], s, 127, 0, 1, 0);
+
+    itoa(area_x, s, 10);
+    font_string_region_clip_right(&line[2], s, 117, 0, 8, 0);
+    itoa(area_y, s, 10);
+    font_string_region_clip_right(&line[3], s, 117, 0, 8, 0);
+    itoa(area_w, s, 10);
+    font_string_region_clip_right(&line[4], s, 117, 0, 8, 0);
+    itoa(area_h, s, 10);
+    font_string_region_clip_right(&line[5], s, 117, 0, 8, 0);
+    
+    for (u16 j = 17; j < 48; j += 2) line[j >> 3].data[119 + ((j & 7) << 7)] = 1;
+
+    u8 l;
+    l = ss->grid.group[0].enabled ? 8 : 1;
+    line[0].data[128 + 3] = l;
+    line[0].data[256 + 2] = l;
+    line[0].data[256 + 4] = l;
+    line[0].data[384 + 2] = l;
+    line[0].data[384 + 4] = l;
+    line[0].data[512 + 2] = l;
+    line[0].data[512 + 4] = l;
+    line[0].data[640 + 3] = l;
+    
+    l = ss->grid.group[1].enabled ? 8 : 1;
+    line[0].data[896 + 4] = l;
+    line[1].data[  0 + 3] = l;
+    line[1].data[  0 + 4] = l;
+    line[1].data[128 + 4] = l;
+    line[1].data[256 + 4] = l;
+    line[1].data[384 + 4] = l;
+
+    l = ss->grid.group[2].enabled ? 8 : 1;
+    line[1].data[640 + 2] = l;
+    line[1].data[640 + 3] = l;
+    line[1].data[768 + 4] = l;
+    line[1].data[896 + 3] = l;
+    line[2].data[  0 + 2] = l;
+    line[2].data[128 + 2] = l;
+    line[2].data[128 + 3] = l;
+    line[2].data[128 + 4] = l;
+
+    l = ss->grid.group[3].enabled ? 8 : 1;
+    line[2].data[384 + 2] = l;
+    line[2].data[384 + 3] = l;
+    line[2].data[384 + 4] = l;
+    line[2].data[512 + 4] = l;
+    line[2].data[640 + 3] = l;
+    line[2].data[768 + 4] = l;
+    line[2].data[896 + 2] = l;
+    line[2].data[896 + 3] = l;
+    
+    l = ss->grid.group[4].enabled ? 8 : 1;
+    line[3].data[128 + 2] = l;
+    line[3].data[128 + 4] = l;
+    line[3].data[256 + 2] = l;
+    line[3].data[256 + 4] = l;
+    line[3].data[384 + 2] = l;
+    line[3].data[384 + 3] = l;
+    line[3].data[384 + 4] = l;
+    line[3].data[512 + 4] = l;
+    line[3].data[640 + 4] = l;
+    
+    l = ss->grid.group[5].enabled ? 8 : 1;
+    line[3].data[896 + 2] = l;
+    line[3].data[896 + 3] = l;
+    line[3].data[896 + 4] = l;
+    line[4].data[  0 + 2] = l;
+    line[4].data[128 + 2] = l;
+    line[4].data[128 + 3] = l;
+    line[4].data[256 + 4] = l;
+    line[4].data[384 + 2] = l;
+    line[4].data[384 + 3] = l;
+
+    l = ss->grid.group[6].enabled ? 8 : 1;
+    line[4].data[640 + 3] = l;
+    line[4].data[640 + 4] = l;
+    line[4].data[768 + 2] = l;
+    line[4].data[896 + 2] = l;
+    line[4].data[896 + 3] = l;
+    line[5].data[  0 + 2] = l;
+    line[5].data[  0 + 4] = l;
+    line[5].data[128 + 3] = l;
+
+    l = ss->grid.group[7].enabled ? 8 : 1;
+    line[5].data[384 + 2] = l;
+    line[5].data[384 + 3] = l;
+    line[5].data[384 + 4] = l;
+    line[5].data[512 + 4] = l;
+    line[5].data[640 + 3] = l;
+    line[5].data[768 + 3] = l;
+    line[5].data[896 + 3] = l;
+
+    for (u16 j = ss->grid.current_group * 6 + 1; j < ss->grid.current_group * 6 + 6; j++)
+        line[j >> 3].data[(j & 7) << 7] = 2;
+    
+    l = page == 0 ? 8 : 2;
+    for (u16 i = 122; i < 128; i++) line[0].data[i + 128] = l;
+    line[0].data[122 + 256] = l;
+    line[0].data[127 + 256] = l;
+    line[0].data[122 + 384] = l;
+    line[0].data[127 + 384] = l;
+    
+    l = page == 1 ? 8 : 2;
+    line[0].data[122 + 512] = l;
+    line[0].data[127 + 512] = l;
+    line[0].data[122 + 640] = l;
+    line[0].data[127 + 640] = l;
+    for (u16 i = 122; i < 128; i++) line[0].data[i + 768] = l;
+
+    l = ss->grid.rotate ? 8 : 2;
+    line[1].data[128 + 123] = l;
+    line[1].data[128 + 124] = l;
+    line[1].data[128 + 125] = l;
+    line[1].data[256 + 122] = l;
+    line[1].data[256 + 126] = l;
+    line[1].data[384 + 122] = l;
+    line[1].data[384 + 126] = l;
+    line[1].data[512 + 125] = l;
+    line[1].data[512 + 126] = l;
+    line[1].data[512 + 127] = l;
+    line[1].data[640 + 126] = l;
 }
 
 void grid_fill_area_scr(u8 x, u8 y, u8 w, u8 h, u8 level, u8 page) {

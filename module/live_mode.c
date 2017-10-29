@@ -32,7 +32,8 @@ static error_t status;
 static char error_msg[TELE_ERROR_MSG_LENGTH];
 static bool show_welcome_message;
 static screen_grid_mode grid_mode = GRID_MODE_OFF;
-static uint8_t grid_page = 0, grid_view_changed = 0, grid_x = 0, grid_y = 0;
+static uint8_t grid_page = 0, grid_view_changed = 0;
+static uint8_t grid_x1 = 0, grid_y1 = 0, grid_x2 = 0, grid_y2 = 0;
 
 static const uint8_t D_INPUT = 1 << 0;
 static const uint8_t D_LIST = 1 << 1;
@@ -102,14 +103,16 @@ void set_live_mode() {
 
 void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, scene_state_t *ss) {
     if (is_release) {
-        if (match_ctrl(m, k, HID_SPACEBAR)) {
-            grid_process_key(ss, grid_x, grid_y, 0);
+        if (match_ctrl(m, k, HID_SPACEBAR) || 
+            (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_SPACEBAR))) {
+            grid_process_key(ss, grid_x1, grid_y1, 0);
         }
         return;
     }
     
     // <down> or C-n: history next
-    if (match_no_mod(m, k, HID_DOWN) || match_ctrl(m, k, HID_N)) {
+    if ((match_no_mod(m, k, HID_DOWN) || match_ctrl(m, k, HID_N))
+        && grid_mode != GRID_MODE_FULL) {
         if (history_line > 0) {
             history_line--;
             line_editor_set_command(&le, &history[history_line]);
@@ -121,7 +124,8 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
         dirty |= D_INPUT;
     }
     // <up> or C-p: history previous
-    else if (match_no_mod(m, k, HID_UP) || match_ctrl(m, k, HID_P)) {
+    else if ((match_no_mod(m, k, HID_UP) || match_ctrl(m, k, HID_P))
+        && grid_mode != GRID_MODE_FULL) {
         if (history_line < history_top) {
             history_line++;
             line_editor_set_command(&le, &history[history_line]);
@@ -129,37 +133,87 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
         }
     }
     // C-G: toggle grid view
-    else if (match_ctrl(m, k, HID_G)) {
+    else if (match_ctrl(m, k, HID_G) || 
+        (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_G))) {
         if (++grid_mode == GRID_MODE_LAST) {
             grid_mode = GRID_MODE_OFF;
             set_live_mode();
         } else grid_view_changed = true;
     }
     // C-<up>: move grid cursor
-    else if (match_ctrl(m, k, HID_UP)) {
-        grid_y = (grid_y + SCREEN_MAX_Y - 1) % SCREEN_MAX_Y;
+    else if (match_ctrl(m, k, HID_UP) ||
+        (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_UP))) {
+        grid_y1 = (grid_y1 + SCREEN_MAX_Y - 1) % SCREEN_MAX_Y;
+        grid_x2 = grid_x1;
+        grid_y2 = grid_y1;
         grid_view_changed = true;
     }
     // C-<down>: move grid cursor
-    else if (match_ctrl(m, k, HID_DOWN)) {
-        grid_y = (grid_y + 1) % SCREEN_MAX_Y;
+    else if (match_ctrl(m, k, HID_DOWN) ||
+        (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_DOWN))) {
+        grid_y1 = (grid_y1 + 1) % SCREEN_MAX_Y;
+        grid_x2 = grid_x1;
+        grid_y2 = grid_y1;
         grid_view_changed = true;
     }
     // C-<left>: move grid cursor
-    else if (match_ctrl(m, k, HID_LEFT)) {
-        grid_x = (grid_x + SCREEN_MAX_X - 1) % SCREEN_MAX_X;
+    else if (match_ctrl(m, k, HID_LEFT) ||
+        (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_LEFT))) {
+        grid_x1 = (grid_x1 + SCREEN_MAX_X - 1) % SCREEN_MAX_X;
+        grid_x2 = grid_x1;
+        grid_y2 = grid_y1;
         grid_view_changed = true;
     }
     // C-<right>: move grid cursor
-    else if (match_ctrl(m, k, HID_RIGHT)) {
-        grid_x = (grid_x + 1) % SCREEN_MAX_X;
+    else if (match_ctrl(m, k, HID_RIGHT) ||
+        (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_RIGHT))) {
+        grid_x1 = (grid_x1 + 1) % SCREEN_MAX_X;
+        grid_x2 = grid_x1;
+        grid_y2 = grid_y1;
         grid_view_changed = true;
     }
-    else if (match_ctrl(m, k, HID_SPACEBAR)) {
-        grid_process_key(ss, grid_x, grid_y, 1);
+    // C-S-<up>: expand grid area up
+    else if (match_shift_ctrl(m, k, HID_UP) ||
+        (grid_mode == GRID_MODE_FULL && match_shift(m, k, HID_UP))) {
+        if (grid_y2 > 0) {
+            grid_y2--;
+            grid_view_changed = true;
+        }
+    }
+    // C-S-<down>: expand grid area down
+    else if (match_shift_ctrl(m, k, HID_DOWN) ||
+        (grid_mode == GRID_MODE_FULL && match_shift(m, k, HID_DOWN))) {
+        if (grid_y2 < SCREEN_MAX_Y - 1) {
+            grid_y2++;
+            grid_view_changed = true;
+        }
+    }
+    // C-S-<left>: expand grid area left
+    else if (match_shift_ctrl(m, k, HID_LEFT) ||
+        (grid_mode == GRID_MODE_FULL && match_shift(m, k, HID_LEFT))) {
+        if (grid_x2 > 0) {
+            grid_x2--;
+            grid_view_changed = true;
+        }
+    }
+    // C-S-<right>: expand grid area right
+    else if (match_shift_ctrl(m, k, HID_RIGHT) ||
+        (grid_mode == GRID_MODE_FULL && match_shift(m, k, HID_RIGHT))) {
+        if (grid_x2 < SCREEN_MAX_X - 1) {
+            grid_x2++;
+            grid_view_changed = true;
+        }
+    }
+    // C-<space>: emulate grid press
+    else if (!is_held_key && (match_ctrl(m, k, HID_SPACEBAR) ||
+        (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_SPACEBAR)))) {
+        grid_x2 = grid_x1;
+        grid_y2 = grid_y1;
+        grid_view_changed = true;
+        grid_process_key(ss, grid_x1, grid_y1, 1);
     }
     // <enter>: execute command
-    else if (match_no_mod(m, k, HID_ENTER)) {
+    else if (match_no_mod(m, k, HID_ENTER) && grid_mode != GRID_MODE_FULL) {
         dirty |= D_MESSAGE;  // something will definitely happen
         dirty |= D_INPUT;
 
@@ -204,7 +258,8 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
              match_no_mod(m, k, HID_CLOSE_BRACKET)) {
         set_mode(M_EDIT);
     }
-    else {  // pass the key though to the line editor
+    // pass the key though to the line editor
+    else if (grid_mode != GRID_MODE_FULL) {
         bool processed = line_editor_process_keys(&le, k, m, is_held_key);
         if (processed) dirty |= D_INPUT;
     }
@@ -218,7 +273,7 @@ bool screen_refresh_live(scene_state_t *ss) {
     if (grid_mode != GRID_MODE_OFF && (grid_view_changed || ss->grid.scr_dirty)) {
         grid_view_changed = 0;
         screen_dirty = true;
-        grid_screen_refresh(ss, grid_mode, grid_page, grid_x, grid_y);
+        grid_screen_refresh(ss, grid_mode, grid_page, grid_x1, grid_y1, grid_x2, grid_y2);
     }
     if (grid_mode == GRID_MODE_FULL) return true;
     
@@ -259,7 +314,7 @@ bool screen_refresh_live(scene_state_t *ss) {
         dirty &= ~D_MESSAGE;
     }
 
-    if (dirty & D_LIST) {
+    if (dirty & D_LIST && grid_mode == GRID_MODE_OFF) {
         for (int i = 0; i < 6; i++) region_fill(&line[i], 0);
 
         screen_dirty = true;

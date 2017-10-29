@@ -195,6 +195,7 @@ static void op_G_GRP_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     s16 group = cs_pop(cs);
     if (group < 0 || group >= GRID_BUTTON_COUNT) return;
     SG.current_group = group;
+    SG.scr_dirty = 1;
 }
 
 static void op_G_GRP_EN_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -340,7 +341,7 @@ static void op_G_BTN_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     GBC.background = level;
     GBC.script = script;
     GB.latch = latch != 0;
-    // GB.state = 0;
+    if (!GB.latch) GB.state = 0;
     
     SG.scr_dirty = SG.grid_dirty = 1;
 }
@@ -378,7 +379,7 @@ static void op_G_BTX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
             GBC.background = level;
             GBC.script = script;
             GB.latch = latch != 0;
-            // GB.state = 0;
+            if (!GB.latch) GB.state = 0;
         }
     
     SG.scr_dirty = SG.grid_dirty = 1;
