@@ -143,7 +143,7 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
     // C-<up>: move grid cursor
     else if (match_ctrl(m, k, HID_UP) ||
         (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_UP))) {
-        grid_y1 = (grid_y1 + SCREEN_MAX_Y - 1) % SCREEN_MAX_Y;
+        grid_y1 = (grid_y1 + GRID_MAX_DIMENSION - 1) % GRID_MAX_DIMENSION;
         grid_x2 = grid_x1;
         grid_y2 = grid_y1;
         grid_view_changed = true;
@@ -151,7 +151,7 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
     // C-<down>: move grid cursor
     else if (match_ctrl(m, k, HID_DOWN) ||
         (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_DOWN))) {
-        grid_y1 = (grid_y1 + 1) % SCREEN_MAX_Y;
+        grid_y1 = (grid_y1 + 1) % GRID_MAX_DIMENSION;
         grid_x2 = grid_x1;
         grid_y2 = grid_y1;
         grid_view_changed = true;
@@ -159,7 +159,7 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
     // C-<left>: move grid cursor
     else if (match_ctrl(m, k, HID_LEFT) ||
         (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_LEFT))) {
-        grid_x1 = (grid_x1 + SCREEN_MAX_X - 1) % SCREEN_MAX_X;
+        grid_x1 = (grid_x1 + GRID_MAX_DIMENSION - 1) % GRID_MAX_DIMENSION;
         grid_x2 = grid_x1;
         grid_y2 = grid_y1;
         grid_view_changed = true;
@@ -167,7 +167,7 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
     // C-<right>: move grid cursor
     else if (match_ctrl(m, k, HID_RIGHT) ||
         (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_RIGHT))) {
-        grid_x1 = (grid_x1 + 1) % SCREEN_MAX_X;
+        grid_x1 = (grid_x1 + 1) % GRID_MAX_DIMENSION;
         grid_x2 = grid_x1;
         grid_y2 = grid_y1;
         grid_view_changed = true;
@@ -183,7 +183,7 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
     // C-S-<down>: expand grid area down
     else if (match_shift_ctrl(m, k, HID_DOWN) ||
         (grid_mode == GRID_MODE_FULL && match_shift(m, k, HID_DOWN))) {
-        if (grid_y2 < SCREEN_MAX_Y - 1) {
+        if (grid_y2 < GRID_MAX_DIMENSION - 1) {
             grid_y2++;
             grid_view_changed = true;
         }
@@ -199,7 +199,7 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
     // C-S-<right>: expand grid area right
     else if (match_shift_ctrl(m, k, HID_RIGHT) ||
         (grid_mode == GRID_MODE_FULL && match_shift(m, k, HID_RIGHT))) {
-        if (grid_x2 < SCREEN_MAX_X - 1) {
+        if (grid_x2 < GRID_MAX_DIMENSION - 1) {
             grid_x2++;
             grid_view_changed = true;
         }
@@ -211,6 +211,60 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
         grid_y2 = grid_y1;
         grid_view_changed = true;
         grid_process_key(ss, grid_x1, grid_y1, 1);
+    }
+    // C-<PrtSc>: insert coordinates / size
+    else if (!is_held_key && match_ctrl(m, k, HID_PRINTSCREEN) &&
+        grid_mode != GRID_MODE_FULL) {
+        u8 area_x, area_y, area_w, area_h;
+        if (grid_x1 < grid_x2) {
+            area_x = grid_x1;
+            area_w = grid_x2 + 1 - grid_x1;
+        } else {
+            area_x = grid_x2;
+            area_w = grid_x1 + 1 - grid_x2;
+        }
+        if (grid_y1 < grid_y2) {
+            area_y = grid_y1;
+            area_h = grid_y2 + 1 - grid_y1;
+        } else {
+            area_y = grid_y2;
+            area_h = grid_y1 + 1 - grid_y2;
+        }
+        if (area_x > 9) {
+            line_editor_process_keys(&le, HID_1, HID_MODIFIER_NONE, false);
+            area_x -= 10;
+        }
+        line_editor_process_keys(&le, 
+            area_x ? HID_1 + area_x - 1 : HID_0, HID_MODIFIER_NONE, false);
+        line_editor_process_keys(&le, HID_SPACEBAR, HID_MODIFIER_NONE, false);
+        if (area_y > 9) {
+            line_editor_process_keys(&le, HID_1, HID_MODIFIER_NONE, false);
+            area_y -= 10;
+        }
+        line_editor_process_keys(&le, 
+            area_y ? HID_1 + area_y - 1 : HID_0, HID_MODIFIER_NONE, false);
+        line_editor_process_keys(&le, HID_SPACEBAR, HID_MODIFIER_NONE, false);
+        if (area_w > 9) {
+            line_editor_process_keys(&le, HID_1, HID_MODIFIER_NONE, false);
+            area_w -= 10;
+        }
+        line_editor_process_keys(&le, 
+            area_w ? HID_1 + area_w - 1 : HID_0, HID_MODIFIER_NONE, false);
+        line_editor_process_keys(&le, HID_SPACEBAR, HID_MODIFIER_NONE, false);
+        if (area_h > 9) {
+            line_editor_process_keys(&le, HID_1, HID_MODIFIER_NONE, false);
+            area_h -= 10;
+        }
+        line_editor_process_keys(&le, 
+            area_h ? HID_1 + area_h - 1 : HID_0, HID_MODIFIER_NONE, false);
+        line_editor_process_keys(&le, HID_SPACEBAR, HID_MODIFIER_NONE, false);
+        dirty |= D_INPUT;
+    }
+    // C-<tab>: toggle grid page
+    else if (match_ctrl(m, k, HID_SLASH) ||
+        (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_SLASH))) {
+        if (++grid_page > 1) grid_page = 0;
+        grid_view_changed = true;
     }
     // <enter>: execute command
     else if (match_no_mod(m, k, HID_ENTER) && grid_mode != GRID_MODE_FULL) {
