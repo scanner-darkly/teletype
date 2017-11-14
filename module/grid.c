@@ -5,6 +5,7 @@
 #include "teletype.h"
 #include "util.h"
 
+/*
 static const u8 font[][] = {
     {
     0b000000,
@@ -31,6 +32,7 @@ static const u8 font[][] = {
     0b000000
     }
 };
+*/
 
 static u16 size_x = 16, size_y = 8;
 static u8 screen[GRID_MAX_DIMENSION][GRID_MAX_DIMENSION];
@@ -229,6 +231,7 @@ void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page, u8 x
 void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u8 y2) {
     grid_fill_area_scr(0, 0, GRID_MAX_DIMENSION, GRID_MAX_DIMENSION, 0, 0);
     
+    /*
     u8 level, last_x, last_y;
     for (u16 i = 0; i < GRID_BUTTON_COUNT; i++) {
         if (!SG.group[GBC.group].enabled) continue;
@@ -282,7 +285,7 @@ void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u
                 }
             }
 
-    
+    */
 }
 
 void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8 y1, u8 x2, u8 y2) {
