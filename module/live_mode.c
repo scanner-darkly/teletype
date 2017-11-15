@@ -99,6 +99,8 @@ void set_live_mode() {
     dirty = D_ALL;
     activity_prev = 0xFF;
     grid_view_changed = true;
+    if (grid_mode == GRID_MODE_FULL)
+        grid_mode = GRID_MODE_LED;
 }
 
 void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, scene_state_t *ss) {
