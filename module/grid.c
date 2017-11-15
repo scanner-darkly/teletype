@@ -342,7 +342,7 @@ void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8
     } else {
         cell = 6;
         size = 4;
-        left = 5;
+        left = 10;
         for (int i = 0; i < 6; i++) region_fill(&line[i], 0);
     }
     
@@ -426,7 +426,7 @@ static void grid_screen_refresh_info(scene_state_t *ss, u8 page, u8 x1, u8 y1, u
 
     s[1] = 0;
     s[0] = 'G';
-    font_string_region_clip_right(&line[1], s, 127, 0, 1, 0);
+    font_string_region_clip_right(&line[0], s, 127, 0, 1, 0);
     s[0] = 'X';
     font_string_region_clip_right(&line[2], s, 127, 0, 1, 0);
     s[0] = 'Y';
@@ -437,7 +437,7 @@ static void grid_screen_refresh_info(scene_state_t *ss, u8 page, u8 x1, u8 y1, u
     font_string_region_clip_right(&line[5], s, 127, 0, 1, 0);
 
     itoa(ss->grid.current_group, s, 10);
-    font_string_region_clip_right(&line[1], s, 117, 0, 8, 0);
+    font_string_region_clip_right(&line[0], s, 117, 0, 8, 0);
     itoa(area_x, s, 10);
     font_string_region_clip_right(&line[2], s, 117, 0, 8, 0);
     itoa(area_y, s, 10);
@@ -447,35 +447,36 @@ static void grid_screen_refresh_info(scene_state_t *ss, u8 page, u8 x1, u8 y1, u
     itoa(area_h, s, 10);
     font_string_region_clip_right(&line[5], s, 117, 0, 8, 0);
     
-    for (u16 j = 9; j < 48; j += 2) line[j >> 3].data[119 + ((j & 7) << 7)] = 1;
+    for (u16 j = 0; j < 9; j += 2) line[j >> 3].data[119 + ((j & 7) << 7)] = 1;
+    for (u16 j = 17; j < 48; j += 2) line[j >> 3].data[119 + ((j & 7) << 7)] = 1;
 
     u8 l;
     l = page == 0 ? 10 : 2;
-    for (u16 i = 110; i < 116; i++) line[0].data[i + 128] = l;
-    line[0].data[110 + 256] = l;
-    line[0].data[115 + 256] = l;
-    line[0].data[110 + 384] = l;
-    line[0].data[115 + 384] = l;
+    for (u16 i = 0; i < 6; i++) line[0].data[i] = l;
+    line[0].data[0 + 128] = l;
+    line[0].data[5 + 128] = l;
+    line[0].data[0 + 256] = l;
+    line[0].data[5 + 256] = l;
     
     l = page == 1 ? 10 : 2;
-    line[0].data[110 + 512] = l;
-    line[0].data[115 + 512] = l;
-    line[0].data[110 + 640] = l;
-    line[0].data[115 + 640] = l;
-    for (u16 i = 110; i < 116; i++) line[0].data[i + 768] = l;
+    line[0].data[0 + 384] = l;
+    line[0].data[5 + 384] = l;
+    line[0].data[0 + 512] = l;
+    line[0].data[5 + 512] = l;
+    for (u16 i = 0; i < 6; i++) line[0].data[i + 640] = l;
 
     l = ss->grid.rotate ? 10 : 2;
-    line[0].data[128 + 123] = l;
-    line[0].data[128 + 124] = l;
-    line[0].data[128 + 125] = l;
-    line[0].data[256 + 122] = l;
-    line[0].data[256 + 126] = l;
-    line[0].data[384 + 122] = l;
-    line[0].data[384 + 126] = l;
-    line[0].data[512 + 125] = l;
-    line[0].data[512 + 126] = l;
-    line[0].data[512 + 127] = l;
-    line[0].data[640 + 126] = l;
+    line[1].data[0 + 1] = l;
+    line[1].data[0 + 2] = l;
+    line[1].data[0 + 3] = l;
+    line[1].data[128 + 0] = l;
+    line[1].data[128 + 4] = l;
+    line[1].data[256 + 0] = l;
+    line[1].data[256 + 4] = l;
+    line[1].data[384 + 3] = l;
+    line[1].data[384 + 4] = l;
+    line[1].data[384 + 5] = l;
+    line[1].data[512 + 4] = l;
 }
 
 void grid_fill_area_scr(u8 x, u8 y, u8 w, u8 h, u8 level, u8 page) {
