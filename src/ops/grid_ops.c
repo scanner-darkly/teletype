@@ -45,9 +45,10 @@ static s16 scale(s16 a, s16 b, s16 x, s16 y, s16 value);
 // clang-format off
 
 static void op_G_RST_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_CLR_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_ROTATE_get (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_DIM_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
-static void op_G_CLR_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_KEY_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 
 static void op_G_GRP_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_GRP_set    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
@@ -63,24 +64,40 @@ static void op_G_LED_get    (const void *data, scene_state_t *ss, exec_state_t *
 static void op_G_LED_set    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_LED_C_get  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_REC_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_RCT_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 
 static void op_G_BTN_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_BTX_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_GBT_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_GBX_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_BTN_EN_get (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_BTN_EN_set (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_BTN_V_get  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_BTN_V_set  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_BTN_L_get  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_BTN_L_set  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_BTN_X_get  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_BTN_X_set  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_BTN_Y_get  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_BTN_Y_set  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_BTNI_get   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_BTNV_get   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_BTNV_set   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_BTNL_get   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_BTNL_set   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_BTNX_get   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_BTNX_set   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_BTNY_get   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_BTNY_set   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_BTN_SW_get (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_BTN_PR_get (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_GBTN_V_get (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_GBTN_L_get (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 
 static void op_G_FDR_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_FDX_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_GFD_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_GFX_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_FDR_EN_get (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_FDR_EN_set (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_FDR_V_get  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
@@ -89,10 +106,22 @@ static void op_G_FDR_N_get  (const void *data, scene_state_t *ss, exec_state_t *
 static void op_G_FDR_N_set  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_FDR_L_get  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_FDR_L_set  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_FDR_X_get  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_FDR_X_set  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_FDR_Y_get  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_FDR_Y_set  (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_FDRI_get   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_FDRV_get   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_FDRV_set   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_FDRN_get   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_FDRN_set   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_FDRL_get   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_FDRL_set   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_FDRX_get   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_FDRX_set   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_FDRY_get   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_FDRY_set   (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
+static void op_G_FDR_PR_get (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_GFDR_V_get (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_GFDR_N_get (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_GFDR_L_get (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
@@ -106,6 +135,7 @@ const tele_op_t op_G_RST     = MAKE_GET_OP(G.RST, op_G_RST_get, 0, false);
 const tele_op_t op_G_ROTATE  = MAKE_GET_OP(G.ROTATE, op_G_ROTATE_get, 1, false);
 const tele_op_t op_G_DIM     = MAKE_GET_OP(G.DIM, op_G_DIM_get, 1, false);
 const tele_op_t op_G_CLR     = MAKE_GET_OP(G.CLR, op_G_CLR_get, 0, false);
+const tele_op_t op_G_KEY     = MAKE_GET_OP(G.KEY, op_G_KEY_get, 3, false);
 
 const tele_op_t op_G_GRP     = MAKE_GET_SET_OP(G.GRP, op_G_GRP_get, op_G_GRP_set, 0, true);
 const tele_op_t op_G_GRP_EN  = MAKE_GET_SET_OP(G.GRP.EN, op_G_GRP_EN_get, op_G_GRP_EN_set, 1, true);
@@ -117,29 +147,44 @@ const tele_op_t op_G_GRPI    = MAKE_GET_OP(G.GRPI, op_G_GRPI_get, 0, true);
 const tele_op_t op_G_LED     = MAKE_GET_SET_OP(G.LED, op_G_LED_get, op_G_LED_set, 2, true);
 const tele_op_t op_G_LED_C   = MAKE_GET_OP(G.LED.C, op_G_LED_C_get, 2, false);
 const tele_op_t op_G_REC     = MAKE_GET_OP(G.REC, op_G_REC_get, 6, false);
+const tele_op_t op_G_RCT     = MAKE_GET_OP(G.RCT, op_G_RCT_get, 6, false);
 
 const tele_op_t op_G_BTN     = MAKE_GET_OP(G.BTN, op_G_BTN_get, 8, false);
 const tele_op_t op_G_BTX     = MAKE_GET_OP(G.BTX, op_G_BTX_get, 10, false);
+const tele_op_t op_G_GBT     = MAKE_GET_OP(G.GBT, op_G_GBT_get, 9, false);
+const tele_op_t op_G_GBX     = MAKE_GET_OP(G.GBX, op_G_GBX_get, 11, false);
 const tele_op_t op_G_BTN_EN  = MAKE_GET_SET_OP(G.BTN.EN, op_G_BTN_EN_get, op_G_BTN_EN_set, 1, true);
 const tele_op_t op_G_BTN_V   = MAKE_GET_SET_OP(G.BTN.V, op_G_BTN_V_get, op_G_BTN_V_set, 1, true);
 const tele_op_t op_G_BTN_L   = MAKE_GET_SET_OP(G.BTN.L, op_G_BTN_L_get, op_G_BTN_L_set, 1, true);
+const tele_op_t op_G_BTN_X   = MAKE_GET_SET_OP(G.BTN.X, op_G_BTN_X_get, op_G_BTN_X_set, 1, true);
+const tele_op_t op_G_BTN_Y   = MAKE_GET_SET_OP(G.BTN.Y, op_G_BTN_Y_get, op_G_BTN_Y_set, 1, true);
 const tele_op_t op_G_BTNI    = MAKE_GET_OP(G.BTNI, op_G_BTNI_get, 0, true);
-const tele_op_t op_G_BTNV    = MAKE_GET_OP(G.BTNV, op_G_BTNV_get, 0, true);
-const tele_op_t op_G_BTNL    = MAKE_GET_OP(G.BTNL, op_G_BTNL_get, 1, false);
+const tele_op_t op_G_BTNV    = MAKE_GET_SET_OP(G.BTNV, op_G_BTNV_get, op_G_BTNV_set, 0, true);
+const tele_op_t op_G_BTNL    = MAKE_GET_SET_OP(G.BTNL, op_G_BTNL_get, op_G_BTNL_set, 0, true);
+const tele_op_t op_G_BTNX    = MAKE_GET_SET_OP(G.BTNX, op_G_BTNX_get, op_G_BTNX_set, 0, true);
+const tele_op_t op_G_BTNY    = MAKE_GET_SET_OP(G.BTNY, op_G_BTNY_get, op_G_BTNY_set, 0, true);
 const tele_op_t op_G_BTN_SW  = MAKE_GET_OP(G.BTN.SW, op_G_BTN_SW_get, 1, false);
+const tele_op_t op_G_BTN_PR  = MAKE_GET_OP(G.BTN.PR, op_G_BTN_PR_get, 2, false);
 const tele_op_t op_G_GBTN_V  = MAKE_GET_OP(G.GBTN.V, op_G_GBTN_V_get, 2, false);
 const tele_op_t op_G_GBTN_L  = MAKE_GET_OP(G.GBTN.L, op_G_GBTN_L_get, 3, false);
 
 const tele_op_t op_G_FDR     = MAKE_GET_OP(G.FDR, op_G_FDR_get, 8, false);
 const tele_op_t op_G_FDX     = MAKE_GET_OP(G.FDX, op_G_FDX_get, 10, false);
+const tele_op_t op_G_GFD     = MAKE_GET_OP(G.GFD, op_G_GFD_get, 9, false);
+const tele_op_t op_G_GFX     = MAKE_GET_OP(G.GFX, op_G_GFX_get, 11, false);
 const tele_op_t op_G_FDR_EN  = MAKE_GET_SET_OP(G.FDR.EN, op_G_FDR_EN_get, op_G_FDR_EN_set, 1, true);
 const tele_op_t op_G_FDR_V   = MAKE_GET_SET_OP(G.FDR.V, op_G_FDR_V_get, op_G_FDR_V_set, 1, true);
 const tele_op_t op_G_FDR_N   = MAKE_GET_SET_OP(G.FDR.N, op_G_FDR_N_get, op_G_FDR_N_set, 1, true);
 const tele_op_t op_G_FDR_L   = MAKE_GET_SET_OP(G.FDR.L, op_G_FDR_L_get, op_G_FDR_L_set, 1, true);
+const tele_op_t op_G_FDR_X   = MAKE_GET_SET_OP(G.FDR.X, op_G_FDR_X_get, op_G_FDR_X_set, 1, true);
+const tele_op_t op_G_FDR_Y   = MAKE_GET_SET_OP(G.FDR.Y, op_G_FDR_Y_get, op_G_FDR_Y_set, 1, true);
 const tele_op_t op_G_FDRI    = MAKE_GET_OP(G.FDRI, op_G_FDRI_get, 0, true);
-const tele_op_t op_G_FDRV    = MAKE_GET_OP(G.FDRV, op_G_FDRV_get, 0, true);
-const tele_op_t op_G_FDRN    = MAKE_GET_OP(G.FDRN, op_G_FDRN_get, 0, true);
-const tele_op_t op_G_FDRL    = MAKE_GET_OP(G.FDRL, op_G_FDRL_get, 1, false);
+const tele_op_t op_G_FDRV    = MAKE_GET_SET_OP(G.FDRV, op_G_FDRV_get, op_G_FDRV_set, 0, true);
+const tele_op_t op_G_FDRN    = MAKE_GET_SET_OP(G.FDRN, op_G_FDRN_get, op_G_FDRN_set, 0, true);
+const tele_op_t op_G_FDRL    = MAKE_GET_SET_OP(G.FDRL, op_G_FDRL_get, op_G_FDRL_set, 0, true);
+const tele_op_t op_G_FDRX    = MAKE_GET_SET_OP(G.FDRX, op_G_FDRX_get, op_G_FDRX_set, 0, true);
+const tele_op_t op_G_FDRY    = MAKE_GET_SET_OP(G.FDRY, op_G_FDRY_get, op_G_FDRY_set, 0, true);
+const tele_op_t op_G_FDR_PR  = MAKE_GET_OP(G.FDR.PR, op_G_FDR_PR_get, 2, false);
 const tele_op_t op_G_GFDR_V  = MAKE_GET_OP(G.GFDR.V, op_G_GFDR_V_get, 2, false);
 const tele_op_t op_G_GFDR_N  = MAKE_GET_OP(G.GFDR.N, op_G_GFDR_N_get, 2, false);
 const tele_op_t op_G_GFDR_L  = MAKE_GET_OP(G.GFDR.L, op_G_GFDR_L_get, 3, false);
@@ -209,6 +254,12 @@ static void op_G_DIM_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     GET_AND_CLAMP(dim, 0, 14);
     SG.dim = dim;
     SG.scr_dirty = SG.grid_dirty = 1;
+}
+
+static void op_G_KEY_get(const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs) {
+    s16 x = cs_pop(cs);
+    s16 y = cs_pop(cs);
+    s16 action = cs_pop(cs);
 }
 
 static void op_G_GRP_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -362,6 +413,15 @@ static void op_G_REC_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
+static void op_G_RCT_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 x1 = cs_pop(cs);
+    s16 y1 = cs_pop(cs);
+    s16 x2 = cs_pop(cs);
+    s16 y2 = cs_pop(cs);
+    GET_LEVEL(fill);
+    GET_LEVEL(border);
+}
+
 static void op_G_BTN_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 i = cs_pop(cs);
     s16 x = cs_pop(cs);
@@ -388,6 +448,18 @@ static void op_G_BTN_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     if (!GB.latch) GB.state = 0;
     
     SG.scr_dirty = SG.grid_dirty = 1;
+}
+
+static void op_G_GBT_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 group = cs_pop(cs);
+    s16 i = cs_pop(cs);
+    s16 x = cs_pop(cs);
+    s16 y = cs_pop(cs);
+    s16 w = cs_pop(cs);
+    s16 h = cs_pop(cs);
+    s16 latch = cs_pop(cs);
+    GET_LEVEL(level);
+    s16 script = cs_pop(cs) - 1;
 }
 
 static void op_G_BTX_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -435,6 +507,20 @@ static void op_G_BTX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
+static void op_G_GBX_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 group = cs_pop(cs);
+    s16 id = cs_pop(cs);
+    s16 _x = cs_pop(cs);
+    s16 _y = cs_pop(cs);
+    s16 _w = cs_pop(cs);
+    s16 _h = cs_pop(cs);
+    s16 latch = cs_pop(cs);
+    GET_LEVEL(level);
+    s16 script = cs_pop(cs) - 1;
+    s16 count_x = cs_pop(cs);
+    s16 count_y = cs_pop(cs);
+}
+
 static void op_G_BTN_EN_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 i = cs_pop(cs);
     cs_push(cs, i < (s16)0 || i >= (s16)GRID_BUTTON_COUNT ? 0 : GBC.enabled);
@@ -475,6 +561,26 @@ static void op_G_BTN_L_set(const void *NOTUSED(data), scene_state_t *ss, exec_st
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
+static void op_G_BTN_X_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 i = cs_pop(cs);
+    cs_push(cs, 0);
+}
+
+static void op_G_BTN_X_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 i = cs_pop(cs);
+    s16 x = cs_pop(cs);
+}
+
+static void op_G_BTN_Y_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 i = cs_pop(cs);
+    cs_push(cs, 0);
+}
+
+static void op_G_BTN_Y_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 i = cs_pop(cs);
+    s16 y = cs_pop(cs);
+}
+
 static void op_G_BTNI_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     cs_push(cs, SG.latest_button);
 }
@@ -483,10 +589,36 @@ static void op_G_BTNV_get(const void *NOTUSED(data), scene_state_t *ss, exec_sta
     cs_push(cs, SG.button[SG.latest_button].state);
 }
 
+static void op_G_BTNV_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 value = cs_pop(cs);
+    SG.button[SG.latest_button].state = value != 0;
+    SG.scr_dirty = SG.grid_dirty = 1;
+}
+
 static void op_G_BTNL_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    cs_push(cs, SG.button[SG.latest_button].common.background);
+}
+
+static void op_G_BTNL_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     GET_LEVEL(level);
     SG.button[SG.latest_button].common.background = level;
     SG.scr_dirty = SG.grid_dirty = 1;
+}
+
+static void op_G_BTNX_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    cs_push(cs, 0);
+}
+
+static void op_G_BTNX_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 x = cs_pop(cs);
+}
+
+static void op_G_BTNY_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    cs_push(cs, 0);
+}
+
+static void op_G_BTNY_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 y = cs_pop(cs);
 }
 
 static void op_G_BTN_SW_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -498,6 +630,11 @@ static void op_G_BTN_SW_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
     
     SG.button[id].state = 1;
     SG.scr_dirty = SG.grid_dirty = 1;
+}
+
+static void op_G_BTN_PR_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 id = cs_pop(cs);
+    s16 action = cs_pop(cs);
 }
 
 static void op_G_GBTN_V_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -556,6 +693,18 @@ static void op_G_FDR_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
+static void op_G_GFD_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 group = cs_pop(cs);
+    s16 i = cs_pop(cs);
+    s16 x = cs_pop(cs);
+    s16 y = cs_pop(cs);
+    s16 w = cs_pop(cs);
+    s16 h = cs_pop(cs);
+    s16 dir = cs_pop(cs);
+    GET_LEVEL(level);
+    s16 script = cs_pop(cs) - 1;
+}
+
 static void op_G_FDX_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 id = cs_pop(cs);
     s16 _x = cs_pop(cs);
@@ -599,6 +748,20 @@ static void op_G_FDX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
         }
     
     SG.scr_dirty = SG.grid_dirty = 1;
+}
+
+static void op_G_GFX_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 group = cs_pop(cs);
+    s16 id = cs_pop(cs);
+    s16 _x = cs_pop(cs);
+    s16 _y = cs_pop(cs);
+    s16 _w = cs_pop(cs);
+    s16 _h = cs_pop(cs);
+    s16 dir = cs_pop(cs);
+    GET_LEVEL(level);
+    s16 script = cs_pop(cs) - 1;
+    s16 count_x = cs_pop(cs);
+    s16 count_y = cs_pop(cs);
 }
 
 static void op_G_FDR_EN_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
@@ -671,6 +834,26 @@ static void op_G_FDR_L_set(const void *NOTUSED(data), scene_state_t *ss, exec_st
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
+static void op_G_FDR_X_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 i = cs_pop(cs);
+    cs_push(cs, 0);
+}
+
+static void op_G_FDR_X_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 i = cs_pop(cs);
+    s16 x = cs_pop(cs);
+}
+
+static void op_G_FDR_Y_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 i = cs_pop(cs);
+    cs_push(cs, 0);
+}
+
+static void op_G_FDR_Y_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 i = cs_pop(cs);
+    s16 y = cs_pop(cs);
+}
+
 static void op_G_FDRI_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     cs_push(cs, SG.latest_fader);
 }
@@ -682,14 +865,63 @@ static void op_G_FDRV_get(const void *NOTUSED(data), scene_state_t *ss, exec_sta
     cs_push(cs, value);
 }
 
+static void op_G_FDRV_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 value = cs_pop(cs);
+    s16 i = SG.latest_fader;
+    
+    if (value < SG.group[GFC.group].fader_min) value = SG.group[GFC.group].fader_min;
+    else if (value > SG.group[GFC.group].fader_max) value = SG.group[GFC.group].fader_max;
+    
+    GF.value = scale(SG.group[GFC.group].fader_min, 
+        SG.group[GFC.group].fader_max, 0, GF.dir ? GFC.h - 1 : GFC.w - 1, value);
+    SG.scr_dirty = SG.grid_dirty = 1;
+}
+
 static void op_G_FDRN_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     cs_push(cs, SG.fader[SG.latest_fader].value);
 }
 
+static void op_G_FDRN_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 value = cs_pop(cs) - 1;
+    s16 i = SG.latest_fader;
+    
+    if (value < (s16)0) value = 0;
+    else if (GF.dir && value >= (s16)GFC.h) value = GFC.h - 1;
+    else if (!GF.dir && value >= (s16)GFC.w) value = GFC.w - 1;
+    
+    GF.value = value;
+    SG.scr_dirty = SG.grid_dirty = 1;
+}
+
 static void op_G_FDRL_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    cs_push(cs, SG.fader[SG.latest_fader].common.background);
+}
+
+static void op_G_FDRL_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     GET_LEVEL(level);
     SG.fader[SG.latest_fader].common.background = level;
     SG.scr_dirty = SG.grid_dirty = 1;
+}
+
+static void op_G_FDRX_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    cs_push(cs, 0);
+}
+
+static void op_G_FDRX_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 x = cs_pop(cs);
+}
+
+static void op_G_FDRY_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    cs_push(cs, 0);
+}
+
+static void op_G_FDRY_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 y = cs_pop(cs);
+}
+
+static void op_G_FDR_PR_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 id = cs_pop(cs);
+    s16 value = cs_pop(cs);
 }
 
 static void op_G_GFDR_V_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {

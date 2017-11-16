@@ -416,6 +416,7 @@
         "G.CLR"            => { MATCH_OP(E_OP_G_CLR); };
         "G.ROTATE"         => { MATCH_OP(E_OP_G_ROTATE); };
         "G.DIM"            => { MATCH_OP(E_OP_G_DIM); };
+        "G.KEY"            => { MATCH_OP(E_OP_G_KEY); };
 
         "G.GRP"            => { MATCH_OP(E_OP_G_GRP); };
         "G.GRP.EN"         => { MATCH_OP(E_OP_G_GRP_EN); };
@@ -427,29 +428,44 @@
         "G.LED"            => { MATCH_OP(E_OP_G_LED); };
         "G.LED.C"          => { MATCH_OP(E_OP_G_LED_C); };
         "G.REC"            => { MATCH_OP(E_OP_G_REC); };
+        "G.RCT"            => { MATCH_OP(E_OP_G_RCT); };
 
         "G.BTN"            => { MATCH_OP(E_OP_G_BTN); };
         "G.BTX"            => { MATCH_OP(E_OP_G_BTX); };
+        "G.GBT"            => { MATCH_OP(E_OP_G_GBT); };
+        "G.GBX"            => { MATCH_OP(E_OP_G_GBX); };
         "G.BTN.EN"         => { MATCH_OP(E_OP_G_BTN_EN); };
         "G.BTN.V"          => { MATCH_OP(E_OP_G_BTN_V); };
         "G.BTN.L"          => { MATCH_OP(E_OP_G_BTN_L); };
+        "G.BTN.X"          => { MATCH_OP(E_OP_G_BTN_X); };
+        "G.BTN.Y"          => { MATCH_OP(E_OP_G_BTN_Y); };
         "G.BTNI"           => { MATCH_OP(E_OP_G_BTNI); };
         "G.BTNV"           => { MATCH_OP(E_OP_G_BTNV); };
         "G.BTNL"           => { MATCH_OP(E_OP_G_BTNL); };
+        "G.BTNX"           => { MATCH_OP(E_OP_G_BTNX); };
+        "G.BTNY"           => { MATCH_OP(E_OP_G_BTNY); };
+        "G.BTN.PR"         => { MATCH_OP(E_OP_G_BTN_PR); };
         "G.BTN.SW"         => { MATCH_OP(E_OP_G_BTN_SW); };
         "G.GBTN.V"         => { MATCH_OP(E_OP_G_GBTN_V); };
         "G.GBTN.L"         => { MATCH_OP(E_OP_G_GBTN_L); };
 
         "G.FDR"            => { MATCH_OP(E_OP_G_FDR); };
         "G.FDX"            => { MATCH_OP(E_OP_G_FDX); };
+        "G.GFD"            => { MATCH_OP(E_OP_G_GFD); };
+        "G.GFX"            => { MATCH_OP(E_OP_G_GFX); };
         "G.FDR.EN"         => { MATCH_OP(E_OP_G_FDR_EN); };
         "G.FDR.V"          => { MATCH_OP(E_OP_G_FDR_V); };
         "G.FDR.N"          => { MATCH_OP(E_OP_G_FDR_N); };
         "G.FDR.L"          => { MATCH_OP(E_OP_G_FDR_L); };
+        "G.FDR.X"          => { MATCH_OP(E_OP_G_FDR_X); };
+        "G.FDR.Y"          => { MATCH_OP(E_OP_G_FDR_Y); };
         "G.FDRI"           => { MATCH_OP(E_OP_G_FDRI); };
         "G.FDRV"           => { MATCH_OP(E_OP_G_FDRV); };
         "G.FDRN"           => { MATCH_OP(E_OP_G_FDRN); };
         "G.FDRL"           => { MATCH_OP(E_OP_G_FDRL); };
+        "G.FDRX"           => { MATCH_OP(E_OP_G_FDRX); };
+        "G.FDRY"           => { MATCH_OP(E_OP_G_FDRY); };
+        "G.FDR.PR"         => { MATCH_OP(E_OP_G_FDR_PR); };
         "G.GFDR.V"         => { MATCH_OP(E_OP_G_GFDR_V); };
         "G.GFDR.N"         => { MATCH_OP(E_OP_G_GFDR_N); };
         "G.GFDR.L"         => { MATCH_OP(E_OP_G_GFDR_L); };
