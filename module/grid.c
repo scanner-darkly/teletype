@@ -450,33 +450,40 @@ static void grid_screen_refresh_info(scene_state_t *ss, u8 page, u8 x1, u8 y1, u
     for (u16 j = 0; j < 9; j += 2) line[j >> 3].data[119 + ((j & 7) << 7)] = 1;
     for (u16 j = 17; j < 48; j += 2) line[j >> 3].data[119 + ((j & 7) << 7)] = 1;
 
-    u8 l;
-    l = page == 0 ? 10 : 2;
-    for (u16 i = 0; i < 6; i++) line[0].data[i] = l;
-    line[0].data[0 + 128] = l;
-    line[0].data[5 + 128] = l;
-    line[0].data[0 + 256] = l;
-    line[0].data[5 + 256] = l;
-    
-    l = page == 1 ? 10 : 2;
-    line[0].data[0 + 384] = l;
-    line[0].data[5 + 384] = l;
-    line[0].data[0 + 512] = l;
-    line[0].data[5 + 512] = l;
-    for (u16 i = 0; i < 6; i++) line[0].data[i + 640] = l;
+    for (u16 i = 0; i < 6; i++) line[0].data[i] = 8;
+    line[0].data[0 + 128] = 8;
+    line[0].data[5 + 128] = 8;
+    line[0].data[0 + 256] = 8;
+    line[0].data[5 + 256] = 8;
+    line[0].data[0 + 384] = 8;
+    line[0].data[5 + 384] = 8;
+    line[0].data[0 + 512] = 8;
+    line[0].data[5 + 512] = 8;
+    for (u16 i = 0; i < 6; i++) line[0].data[i + 640] = 8;
+    if (page == 0) {
+        for (u16 i = 1; i < 5; i++)
+            for (u16 j = 1; j < 3; j++)
+                line[0].data[i + (j << 7)] = 15;
+    } else {
+        for (u16 i = 1; i < 5; i++)
+            for (u16 j = 3; j < 5; j++)
+                line[0].data[i + (j << 7)] = 15;
+    }
 
-    l = ss->grid.rotate ? 10 : 2;
-    line[1].data[0 + 1] = l;
-    line[1].data[0 + 2] = l;
-    line[1].data[0 + 3] = l;
-    line[1].data[128 + 0] = l;
-    line[1].data[128 + 4] = l;
-    line[1].data[256 + 0] = l;
-    line[1].data[256 + 4] = l;
-    line[1].data[384 + 3] = l;
-    line[1].data[384 + 4] = l;
-    line[1].data[384 + 5] = l;
-    line[1].data[512 + 4] = l;
+    u8 l = ss->grid.rotate ? 10 : 2;
+    line[1].data[0 + 0] = l;
+    line[1].data[1 + 0] = l;
+    line[1].data[2 + 0] = l;
+    line[1].data[3 + 0] = l;
+    line[1].data[3 + 128] = l;
+    line[1].data[3 + 256] = l;
+    line[1].data[1 + 384] = l;
+    line[1].data[3 + 384] = l;
+    line[1].data[5 + 384] = l;
+    line[1].data[2 + 512] = l;
+    line[1].data[3 + 512] = l;
+    line[1].data[4 + 512] = l;
+    line[1].data[3 + 640] = l;
 }
 
 void grid_fill_area_scr(u8 x, u8 y, u8 w, u8 h, u8 level, u8 page) {
