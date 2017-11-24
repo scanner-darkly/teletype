@@ -40,12 +40,13 @@
 #define min(a, b) ((s32)(a) < (s32)(b) ? (s32)(a) : (s32)(b))
 #define max(a, b) ((s32)(a) > (s32)(b) ? (s32)(a) : (s32)(b))
 
+// clang-format off
+
 static void grid_common_init(grid_common_t *gc);
 static s16 scale(s16 a, s16 b, s16 x, s16 y, s16 value);
 static void grid_rectangle(scene_state_t *ss, s16 x, s16 y, s16 w, s16 h, u8 fill, u8 border);
-
-
-// clang-format off
+static void grid_init_button(scene_state_t *ss, u8 group, u16 i, u8 x, u8 y, u8 w, u8 h, u8 latch, u8 level, u8 script);
+static void grid_init_fader(scene_state_t *ss, u8 group, u16 i, u8 x, u8 y, u8 w, u8 h, u8 dir, u8 level, u8 script);
 
 static void op_G_RST_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_CLR_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
@@ -419,17 +420,7 @@ static void op_G_BTN_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     if (script < 0 || script > INIT_SCRIPT) script = -1;
     CLAMP_X_Y_W_H(return);
     
-    GBC.enabled = true;
-    GBC.group = SG.current_group;
-    GBC.x = x;
-    GBC.y = y;
-    GBC.w = w;
-    GBC.h = h;
-    GBC.background = level;
-    GBC.script = script;
-    GB.latch = latch != 0;
-    if (!GB.latch) GB.state = 0;
-    
+    grid_init_button(ss, SG.current_group, i, x, y, w, h, latch != 0, level, script);
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
@@ -449,17 +440,7 @@ static void op_G_GBT_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     if (script < 0 || script > INIT_SCRIPT) script = -1;
     CLAMP_X_Y_W_H(return);
     
-    GBC.enabled = true;
-    GBC.group = group;
-    GBC.x = x;
-    GBC.y = y;
-    GBC.w = w;
-    GBC.h = h;
-    GBC.background = level;
-    GBC.script = script;
-    GB.latch = latch != 0;
-    if (!GB.latch) GB.state = 0;
-    
+    grid_init_button(ss, group, i, x, y, w, h, latch != 0, level, script);
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
@@ -469,7 +450,7 @@ static void op_G_BTX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     s16 _y = cs_pop(cs);
     s16 _w = cs_pop(cs);
     s16 _h = cs_pop(cs);
-    s16 latch = cs_pop(cs);
+    s16 latch = cs_pop(cs) != 0;
     GET_LEVEL(level);
     s16 script = cs_pop(cs) - 1;
     s16 count_x = cs_pop(cs);
@@ -488,21 +469,12 @@ static void op_G_BTX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
         for (s16 cx = 0; cx < count_x; cx++) {
             i = id + cy * count_x + cx;
             if (i >= GRID_BUTTON_COUNT) break;
-            GBC.enabled = true;
-            GBC.group = SG.current_group;
             x = _x + _w * cx;
             w = _w;
             y = _y + _h * cy;
             h = _h;
             CLAMP_X_Y_W_H(continue);
-            GBC.x = x;
-            GBC.y = y;
-            GBC.w = w;
-            GBC.h = h;
-            GBC.background = level;
-            GBC.script = script;
-            GB.latch = latch != 0;
-            if (!GB.latch) GB.state = 0;
+            grid_init_button(ss, SG.current_group, i, x, y, w, h, latch, level, script);
         }
     
     SG.scr_dirty = SG.grid_dirty = 1;
@@ -515,7 +487,7 @@ static void op_G_GBX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     s16 _y = cs_pop(cs);
     s16 _w = cs_pop(cs);
     s16 _h = cs_pop(cs);
-    s16 latch = cs_pop(cs);
+    s16 latch = cs_pop(cs) != 0;
     GET_LEVEL(level);
     s16 script = cs_pop(cs) - 1;
     s16 count_x = cs_pop(cs);
@@ -535,21 +507,12 @@ static void op_G_GBX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
         for (s16 cx = 0; cx < count_x; cx++) {
             i = id + cy * count_x + cx;
             if (i >= GRID_BUTTON_COUNT) break;
-            GBC.enabled = true;
-            GBC.group = group;
             x = _x + _w * cx;
             w = _w;
             y = _y + _h * cy;
             h = _h;
             CLAMP_X_Y_W_H(continue);
-            GBC.x = x;
-            GBC.y = y;
-            GBC.w = w;
-            GBC.h = h;
-            GBC.background = level;
-            GBC.script = script;
-            GB.latch = latch != 0;
-            if (!GB.latch) GB.state = 0;
+            grid_init_button(ss, group, i, x, y, w, h, latch, level, script);
         }
     
     SG.scr_dirty = SG.grid_dirty = 1;
@@ -782,17 +745,7 @@ static void op_G_FDR_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     if (script < 0 || script > INIT_SCRIPT) script = -1;
     CLAMP_X_Y_W_H(return);
 
-    GFC.enabled = true;
-    GFC.group = SG.current_group;
-    GFC.x = x;
-    GFC.y = y;
-    GFC.w = w;
-    GFC.h = h;
-    GFC.background = level;
-    GFC.script = script;
-    GF.dir = dir != 0;
-    // GF.value = 0;
-    
+    grid_init_fader(ss, SG.current_group, i, x, y, w, h, dir != 0, level, script);
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
@@ -812,16 +765,7 @@ static void op_G_GFD_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     if (script < 0 || script > INIT_SCRIPT) script = -1;
     CLAMP_X_Y_W_H(return);
 
-    GFC.enabled = true;
-    GFC.group = group;
-    GFC.x = x;
-    GFC.y = y;
-    GFC.w = w;
-    GFC.h = h;
-    GFC.background = level;
-    GFC.script = script;
-    GF.dir = dir != 0;
-    
+    grid_init_fader(ss, group, i, x, y, w, h, dir != 0, level, script);
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
@@ -831,7 +775,7 @@ static void op_G_FDX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     s16 _y = cs_pop(cs);
     s16 _w = cs_pop(cs);
     s16 _h = cs_pop(cs);
-    s16 dir = cs_pop(cs);
+    s16 dir = cs_pop(cs) != 0;
     GET_LEVEL(level);
     s16 script = cs_pop(cs) - 1;
     s16 count_x = cs_pop(cs);
@@ -850,21 +794,12 @@ static void op_G_FDX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
         for (u16 cx = 0; cx < count_x; cx++) {
             i = id + cy * count_x + cx;
             if (i >= (s16)GRID_FADER_COUNT) break;
-            GFC.enabled = true;
-            GFC.group = SG.current_group;
             x = _x + _w * cx;
             w = _w;
             y = _y + _h * cy;
             h = _h;
             CLAMP_X_Y_W_H(continue);
-            GFC.x = x;
-            GFC.y = y;
-            GFC.w = w;
-            GFC.h = h;
-            GFC.background = level;
-            GFC.script = script;
-            GF.dir = dir != 0;
-            // GF.value = 0;
+            grid_init_fader(ss, SG.current_group, i, x, y, w, h, dir, level, script);
         }
     
     SG.scr_dirty = SG.grid_dirty = 1;
@@ -897,20 +832,12 @@ static void op_G_GFX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
         for (u16 cx = 0; cx < count_x; cx++) {
             i = id + cy * count_x + cx;
             if (i >= (s16)GRID_FADER_COUNT) break;
-            GFC.enabled = true;
-            GFC.group = group;
             x = _x + _w * cx;
             w = _w;
             y = _y + _h * cy;
             h = _h;
             CLAMP_X_Y_W_H(continue);
-            GFC.x = x;
-            GFC.y = y;
-            GFC.w = w;
-            GFC.h = h;
-            GFC.background = level;
-            GFC.script = script;
-            GF.dir = dir != 0;
+            grid_init_fader(ss, group, i, x, y, w, h, dir, level, script);
         }
     
     SG.scr_dirty = SG.grid_dirty = 1;
@@ -1278,4 +1205,29 @@ void grid_rectangle(scene_state_t *ss, s16 x, s16 y, s16 w, s16 h, u8 fill, u8 b
             SG.leds[col][row] = border;
 
     SG.scr_dirty = SG.grid_dirty = 1;
+}
+
+static void grid_init_button(scene_state_t *ss, u8 group, u16 i, u8 x, u8 y, u8 w, u8 h, u8 latch, u8 level, u8 script) {
+    GBC.enabled = true;
+    GBC.group = group;
+    GBC.x = x;
+    GBC.y = y;
+    GBC.w = w;
+    GBC.h = h;
+    GBC.background = level;
+    GBC.script = script;
+    GB.latch = latch != 0;
+    if (!GB.latch) GB.state = 0;
+}
+
+static void grid_init_fader(scene_state_t *ss, u8 group, u16 i, u8 x, u8 y, u8 w, u8 h, u8 dir, u8 level, u8 script) {
+    GFC.enabled = true;
+    GFC.group = group;
+    GFC.x = x;
+    GFC.y = y;
+    GFC.w = w;
+    GFC.h = h;
+    GFC.background = level;
+    GFC.script = script;
+    GF.dir = dir != 0;
 }
