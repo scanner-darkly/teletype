@@ -767,9 +767,12 @@ void tele_kill() {
     }
 }
 
-
 bool tele_get_input_state(uint8_t n) {
     return gpio_get_pin_value(A00 + n) > 0;
+}
+
+void grid_key_press(uint8_t x, int8_t y, int8_t z) {
+    grid_process_key(&scene_state, x, y, z);
 }
 
 
