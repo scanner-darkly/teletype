@@ -436,7 +436,7 @@ static void handler_MonomeRefresh(s32 data) {
 static void handler_MonomeGridKey(s32 data) {
     u8 x, y, z;
     monome_grid_key_parse_event_data(data, &x, &y, &z);
-    grid_process_key(&scene_state, x, y, z);
+    grid_process_key(&scene_state, x, y, z, 0);
 }
 
 
@@ -771,8 +771,8 @@ bool tele_get_input_state(uint8_t n) {
     return gpio_get_pin_value(A00 + n) > 0;
 }
 
-void grid_key_press(uint8_t x, int8_t y, int8_t z) {
-    grid_process_key(&scene_state, x, y, z);
+void grid_key_press(uint8_t x, uint8_t y, uint8_t z) {
+    grid_process_key(&scene_state, x, y, z, 1);
 }
 
 

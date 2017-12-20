@@ -5,11 +5,82 @@
 #include "teletype.h"
 #include "util.h"
 
-/*
-static const u8 font[][] = {
+static const u8 glyph[16][6] = {
+    {
+    0b000000,
+    0b000000,
+    0b000000,
+    0b000000,
+    0b000000,
+    0b000000
+    },
     {
     0b000000,
     0b011110,
+    0b010010,
+    0b010010,
+    0b011110,
+    0b000000
+    },
+    {
+    0b000000,
+    0b011110,
+    0b010010,
+    0b010010,
+    0b010010,
+    0b010010
+    },
+    {
+    0b010010,
+    0b010010,
+    0b010010,
+    0b010010,
+    0b010010,
+    0b010010
+    },
+    {
+    0b010010,
+    0b010010,
+    0b010010,
+    0b010010,
+    0b011110,
+    0b000000
+    },
+    {
+    0b000000,
+    0b011111,
+    0b010000,
+    0b010000,
+    0b011111,
+    0b000000
+    },
+    {
+    0b000000,
+    0b111111,
+    0b000000,
+    0b000000,
+    0b111111,
+    0b000000
+    },
+    {
+    0b000000,
+    0b111110,
+    0b000010,
+    0b000010,
+    0b111110,
+    0b000000
+    },
+    {
+    0b000000,
+    0b011111,
+    0b010000,
+    0b010000,
+    0b010000,
+    0b010000
+    },
+    {
+    0b000000,
+    0b111111,
     0b000000,
     0b000000,
     0b000000,
@@ -17,10 +88,34 @@ static const u8 font[][] = {
     },
     {
     0b000000,
-    0b000000,
-    0b000000,
-    0b000000,
-    0b000000,
+    0b111110,
+    0b000010,
+    0b000010,
+    0b000010,
+    0b000010
+    },
+    {
+    0b010000,
+    0b010000,
+    0b010000,
+    0b010000,
+    0b010000,
+    0b010000
+    },
+    {
+    0b000010,
+    0b000010,
+    0b000010,
+    0b000010,
+    0b000010,
+    0b000010
+    },
+    {
+    0b010000,
+    0b010000,
+    0b010000,
+    0b010000,
+    0b011111,
     0b000000
     },
     {
@@ -28,15 +123,21 @@ static const u8 font[][] = {
     0b000000,
     0b000000,
     0b000000,
-    0b000000,
+    0b111111,
+    0b000000
+    },
+    {
+    0b000010,
+    0b000010,
+    0b000010,
+    0b000010,
+    0b111110,
     0b000000
     }
 };
-*/
 
 static u16 size_x = 16, size_y = 8;
-static u8 screen[GRID_MAX_DIMENSION][GRID_MAX_DIMENSION];
-static u8 layout[GRID_MAX_DIMENSION][GRID_MAX_DIMENSION];
+static u8 screen[GRID_MAX_DIMENSION][GRID_MAX_DIMENSION/2];
 
 static void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u8 y2);
 static void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8 y1, u8 x2, u8 y2);
@@ -116,9 +217,9 @@ void grid_refresh(scene_state_t *ss) {
     SG.grid_dirty = 0;
 }
 
-void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z) {
-    u8 x = SG.rotate ? monome_size_x() - _x - 1 : _x;
-    u8 y = SG.rotate ? monome_size_y() - _y - 1 : _y;
+void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z, u8 ignore_rotate) {
+    u8 x = SG.rotate && !ignore_rotate ? monome_size_x() - _x - 1 : _x;
+    u8 y = SG.rotate && !ignore_rotate ? monome_size_y() - _y - 1 : _y;
     u8 refresh = 0;
     u8 scripts[SCRIPT_COUNT];
     for (u8 i = 0; i < SCRIPT_COUNT; i++) scripts[i] = 0;
@@ -208,16 +309,13 @@ void grid_fill_area(u8 x, u8 y, u8 w, u8 h, u8 level) {
 
 ///////////////////////////////////////// screen functions
 
-void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page, u8 x1, u8 y1, u8 x2, u8 y2) {
+void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page, u8 ctrl, u8 x1, u8 y1, u8 x2, u8 y2) {
     switch (mode) {
-        case GRID_MODE_LED:
+        case GRID_MODE_EDIT:
             grid_screen_refresh_led(ss, 0, page, x1, y1, x2, y2);
+            if (ctrl) grid_screen_refresh_ctrl(ss, page, x1, y1, x2, y2);
             grid_screen_refresh_info(ss, page, x1, y1, x2, y2);
             break;
-        //case GRID_MODE_CTRL:
-        //    grid_screen_refresh_ctrl(ss, page);
-        //    grid_screen_refresh_info(ss, page, x1, y1, x2, y2);
-        //    break;
         case GRID_MODE_FULL:
             grid_screen_refresh_led(ss, 1, page, x1, y1, x2, y2);
             break;
@@ -231,61 +329,72 @@ void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page, u8 x
 void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u8 y2) {
     grid_fill_area_scr(0, 0, GRID_MAX_DIMENSION, GRID_MAX_DIMENSION, 0, 0);
     
-    /*
-    u8 level, last_x, last_y;
+    u8 last_x, last_y;
+    
     for (u16 i = 0; i < GRID_BUTTON_COUNT; i++) {
-        if (!SG.group[GBC.group].enabled) continue;
-        level = (GBC.enabled ? (GB.state ? 15 : 8) : 1) << 4;
+        if (!SG.group[GBC.group].enabled || !GBC.enabled) continue;
         last_x = GBC.x + GBC.w - 1;
         last_y = GBC.y + GBC.h - 1;
         if (GBC.w == 1 && GBC.h == 1) {
-            grid_fill_area_scr(GBC.x, GBC.y, 1, 1, level + 1, page);
+            grid_fill_area_scr(GBC.x, GBC.y, 1, 1, 1, page);
         } else if (GBC.w == 1 && GBC.h > 1) {
-            grid_fill_area_scr(GBC.x, GBC.y, 1, 1, level + 2, page);
-            grid_fill_area_scr(GBC.x, GBC.y + 1, 1, GBC.h - 2, level + 3, page);
-            grid_fill_area_scr(GBC.x, last_y, 1, 1, level + 4, page);
+            grid_fill_area_scr(GBC.x, GBC.y, 1, 1, 2, page);
+            grid_fill_area_scr(GBC.x, GBC.y + 1, 1, GBC.h - 2, 3, page);
+            grid_fill_area_scr(GBC.x, last_y, 1, 1, 4, page);
         } else if (GBC.w > 1 && GBC.h == 1) {
-            grid_fill_area_scr(GBC.x, GBC.y, 1, 1, level + 5, page);
-            grid_fill_area_scr(GBC.x + 1, GBC.y, GBC.w - 2, 1, level + 6, page);
-            grid_fill_area_scr(last_x, GBC.y, 1, 1, level + 7, page);
+            grid_fill_area_scr(GBC.x, GBC.y, 1, 1, 5, page);
+            grid_fill_area_scr(GBC.x + 1, GBC.y, GBC.w - 2, 1, 6, page);
+            grid_fill_area_scr(last_x, GBC.y, 1, 1, 7, page);
         } else {
-            grid_fill_area_scr(GBC.x, GBC.y, 1, 1, level + 8, page);
-            grid_fill_area_scr(GBC.x + 1, GBC.y, GBC.w - 2, 1, level + 9, page);
-            grid_fill_area_scr(last_x, GBC.y, 1, 1, level + 10, page);
-            grid_fill_area_scr(GBC.x, GBC.y + 1, 1, GBC.h - 2, level + 11, page);
-            grid_fill_area_scr(last_x, GBC.y + 1, 1, GBC.h - 2, level + 12, page);
-            grid_fill_area_scr(GBC.x, last_y, 1, 1, level + 13, page);
-            grid_fill_area_scr(GBC.x + 1, last_y, GBC.w - 2, 1, level + 14, page);
-            grid_fill_area_scr(last_x, last_y, 1, 1, level + 15, page);
+            grid_fill_area_scr(GBC.x, GBC.y, 1, 1, 8, page);
+            grid_fill_area_scr(GBC.x + 1, GBC.y, GBC.w - 2, 1, 9, page);
+            grid_fill_area_scr(last_x, GBC.y, 1, 1, 10, page);
+            grid_fill_area_scr(GBC.x, GBC.y + 1, 1, GBC.h - 2, 11, page);
+            grid_fill_area_scr(last_x, GBC.y + 1, 1, GBC.h - 2, 12, page);
+            grid_fill_area_scr(GBC.x, last_y, 1, 1, 13, page);
+            grid_fill_area_scr(GBC.x + 1, last_y, GBC.w - 2, 1, 14, page);
+            grid_fill_area_scr(last_x, last_y, 1, 1, 15, page);
         }
     }
-    
-    u8 _line;
-    u16 _data;
-    u8 type;
-    for (u16 x = 0; x < GRID_MAX_DIMENSION; x++)
-        for (u16 y = 0; y < GRID_MAX_DIMENSION; y++)
-            type = screen[x][y] && ;
-        
-            for (u16 j = 0; j < 6; j++) {
-                _y = y * 6 + j + 1;
-                if (page) {
-                    if (_y < cell << 3) continue;
-                     _y -= cell << 3;
-                }
-                _line = _y >> 3;
-                for (u16 i = 0; i < size; i++) {
-                    _data = left + x * cell + i + ((_y & 7) << 7) + 1;
-                    if (_line > 7 || _data > 1023) continue;
-                    if (screen[x][y] == 0) {
-                        if (i == 0 || i == size - 1 || j == 0 || j == size - 1)
-                            line[_line].data[_data] = 1;
-                    } else
-                        line[_line].data[_data] = screen[x][y];
-                }
-            }
 
-    */
+    for (u16 i = 0; i < GRID_FADER_COUNT; i++) {
+        if (!SG.group[GFC.group].enabled || !GFC.enabled) continue;
+        last_x = GFC.x + GFC.w - 1;
+        last_y = GFC.y + GFC.h - 1;
+        if (GFC.w == 1 && GFC.h == 1) {
+            grid_fill_area_scr(GFC.x, GFC.y, 1, 1, 1, page);
+        } else if (GFC.w == 1 && GFC.h > 1) {
+            grid_fill_area_scr(GFC.x, GFC.y, 1, 1, 2, page);
+            grid_fill_area_scr(GFC.x, GFC.y + 1, 1, GFC.h - 2, 3, page);
+            grid_fill_area_scr(GFC.x, last_y, 1, 1, 4, page);
+        } else if (GFC.w > 1 && GFC.h == 1) {
+            grid_fill_area_scr(GFC.x, GFC.y, 1, 1, 5, page);
+            grid_fill_area_scr(GFC.x + 1, GFC.y, GFC.w - 2, 1, 6, page);
+            grid_fill_area_scr(last_x, GFC.y, 1, 1, 7, page);
+        } else {
+            grid_fill_area_scr(GFC.x, GFC.y, 1, 1, 8, page);
+            grid_fill_area_scr(GFC.x + 1, GFC.y, GFC.w - 2, 1, 9, page);
+            grid_fill_area_scr(last_x, GFC.y, 1, 1, 10, page);
+            grid_fill_area_scr(GFC.x, GFC.y + 1, 1, GFC.h - 2, 11, page);
+            grid_fill_area_scr(last_x, GFC.y + 1, 1, GFC.h - 2, 12, page);
+            grid_fill_area_scr(GFC.x, last_y, 1, 1, 13, page);
+            grid_fill_area_scr(GFC.x + 1, last_y, GFC.w - 2, 1, 14, page);
+            grid_fill_area_scr(last_x, last_y, 1, 1, 15, page);
+        }
+    }
+
+    u8 l, _y, __y;
+    u16 d;
+    for (u16 y = 0; y < 48; y++) {
+        l = y >> 3;
+        d = 10 + ((y & 7) << 7);
+        _y = y / 6;
+        __y = y % 6;
+        for (u16 x = 0; x < 96; x++)
+            if ((1 << (5 - (x%6))) & glyph[screen[x/6][_y]][__y]) line[l].data[x + d] = 10;
+    }
+
+    return;
 }
 
 void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8 y1, u8 x2, u8 y2) {
@@ -320,13 +429,16 @@ void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8
         if (GBC.enabled && SG.group[GBC.group].enabled)
             grid_fill_area_scr(GBC.x, GBC.y, GBC.w, GBC.h, GB.state ? 15 : GBC.background, page);
     
+    u16 pd = page ? 8 : 0;
+    s8 l;
     for (u16 i = 0; i < GRID_MAX_DIMENSION; i++)
-        for (u16 j = 0; j < GRID_MAX_DIMENSION; j++) {
-            if (SG.leds[i][j] >= 0)
-                screen[i][j] = SG.leds[i][j];
-            else if (SG.leds[i][j] == LED_DIM)
+        for (u16 j = 0; j < GRID_MAX_DIMENSION/2; j++) {
+            l = SG.leds[i][j + pd];
+            if (l >= 0)
+                screen[i][j] = l;
+            else if (l == LED_DIM)
                 screen[i][j] >>= 1;
-            else if (SG.leds[i][j] == LED_BRI) {
+            else if (l == LED_BRI) {
                 screen[i][j] <<= 1;
                 if (screen[i][j] > 15) screen[i][j] = 15;
                 else if (screen[i][j] < 1) screen[i][j] = 1;
@@ -349,13 +461,9 @@ void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8
     u8 _line;
     u16 _data;
     for (u16 x = 0; x < GRID_MAX_DIMENSION; x++)
-        for (u16 y = 0; y < GRID_MAX_DIMENSION; y++)
+        for (u16 y = 0; y < GRID_MAX_DIMENSION/2; y++)
             for (u16 j = 0; j < size; j++) {
                 _y = y * cell + j + 1;
-                if (page) {
-                    if (_y < cell << 3) continue;
-                     _y -= cell << 3;
-                }
                 _line = _y >> 3;
                 for (u16 i = 0; i < size; i++) {
                     _data = left + x * cell + i + ((_y & 7) << 7) + 1;
@@ -368,41 +476,67 @@ void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8
                 }
             }
 
-    u16 area_x, area_y, area_w, area_h;
-    if (x1 < x2) {
-        area_x = x1 * cell;
-        area_w = (x2 + 1 - x1) * cell;
-    } else {
-        area_x = x2 * cell;
-        area_w = (x1 + 1 - x2) * cell;
-    }
-    if (y1 < y2) {
-        area_y = y1 * cell;
-        area_h = (y2 + 1 - y1) * cell;
-    } else {
-        area_y = y2 * cell;
-        area_h = (y1 + 1 - y2) * cell;
-    }
+    // draw selected area
+
+    u8 _x1, _x2;
+    u16 _y1, _y2;
+    _x1 = min(x1, x2) * cell;
+    _y1 = min(y1, y2) * cell;
     if (full_grid) {
-        area_w--;
-        area_h--;
+        _x2 = _x1 + size + 1;
+        _y2 = _y1 + size + 1;
+    } else {
+        _x2 = (max(x1, x2) + 1) * cell - 1;
+        _y2 = (max(y1, y2) + 1) * cell - 1;
     }
     
-    for (u16 j = 0; j < area_h; j++) {
-        _y = area_y + j;
-        if (page) {
-            if (_y < (cell << 3)) continue;
-             _y -= cell << 3 ;
-        }
-        _line = _y >> 3;
-        for (u16 i = 0; i < area_w; i++) {
-            if (i == 0 || i == area_w - 1 || j == 0 || j == area_h - 1) {
-                _data = left + i + area_x + ((_y & 7) << 7);
-                if (_line > 7 || _data > 1023) continue;
-                line[_line].data[_data] = 8;
-            }
+    u8 show_y1, show_y2;
+    show_y1 = show_y2 = true;
+    
+    u16 p = cell << 3;
+    if (page) {
+        if (_y2 < p) return;
+        if (_y1 < p) {
+            show_y1 = false;
+            _y1 = p;
+        };
+        _y1 -= p;
+        _y2 -= p;
+    } else {
+        if (_y1 >= p) return;
+        if (_y2 >= p) {
+            show_y2 = false;
+            _y2 = p - 1;
         }
     }
+    
+    if (show_y1) {
+        _line = _y1 >> 3;
+        _data = left + ((_y1 & 7) << 7);
+        for (u16 x = _x1; x <= _x2; x++)
+            line[_line].data[_data + x] = x & 1 ? 4 : 15;
+    }
+    if (show_y2) {
+        _line = _y2 >> 3;
+        _data = left + ((_y2 & 7) << 7);
+        if (full_grid)
+            for (u16 x = _x1 + 1; x <= _x2; x++)
+                line[_line].data[_data + x] = x & 1 ? 4 : 15;
+        else
+            for (u16 x = _x1 + 1; x <= _x2; x++)
+                line[_line].data[_data + x] = x & 1 ? 15 : 4;
+    }
+    
+    if (full_grid)
+        for (u16 y = _y1; y <= _y2; y++) {
+            line[y >> 3].data[left + ((y & 7) << 7) + _x1] =
+                line[y >> 3].data[left + ((y & 7) << 7) + _x2] = y & 1 ? 4 : 15;
+        }
+    else
+        for (u16 y = _y1; y <= _y2; y++) {
+            line[y >> 3].data[left + ((y & 7) << 7) + _x1] = y & 1 ? 4 : 15;
+            line[y >> 3].data[left + ((y & 7) << 7) + _x2] = y & 1 ? 15 : 4;
+        }
 }                
 
 static void grid_screen_refresh_info(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u8 y2) {
@@ -450,64 +584,72 @@ static void grid_screen_refresh_info(scene_state_t *ss, u8 page, u8 x1, u8 y1, u
     for (u16 j = 0; j < 9; j += 2) line[j >> 3].data[119 + ((j & 7) << 7)] = 1;
     for (u16 j = 17; j < 48; j += 2) line[j >> 3].data[119 + ((j & 7) << 7)] = 1;
 
-    for (u16 i = 0; i < 6; i++) line[0].data[i] = 8;
-    line[0].data[0 + 128] = 8;
-    line[0].data[5 + 128] = 8;
-    line[0].data[0 + 256] = 8;
-    line[0].data[5 + 256] = 8;
-    line[0].data[0 + 384] = 8;
-    line[0].data[5 + 384] = 8;
-    line[0].data[0 + 512] = 8;
-    line[0].data[5 + 512] = 8;
-    for (u16 i = 0; i < 6; i++) line[0].data[i + 640] = 8;
+    // icons
+    
     if (page == 0) {
-        for (u16 i = 1; i < 5; i++)
-            for (u16 j = 1; j < 3; j++)
-                line[0].data[i + (j << 7)] = 15;
+        for (u16 i = 0; i < 5; i++) line[0].data[i] = line[0].data[i + 128] = 10;
+        line[0].data[0 + 256] = 1;
+        line[0].data[4 + 256] = 1;
+        line[0].data[0 + 384] = 1;
+        line[0].data[4 + 384] = 1;
+        for (u16 i = 512; i < 517; i++) line[0].data[i] = 1;
     } else {
-        for (u16 i = 1; i < 5; i++)
-            for (u16 j = 3; j < 5; j++)
-                line[0].data[i + (j << 7)] = 15;
+        for (u16 i = 0; i < 5; i++) line[0].data[i] = 1;
+        line[0].data[0 + 128] = 1;
+        line[0].data[4 + 128] = 1;
+        line[0].data[0 + 256] = 1;
+        line[0].data[4 + 256] = 1;
+        for (u16 i = 384; i < 389; i++) line[0].data[i] = line[0].data[i + 128] = 10;
     }
 
-    u8 l = ss->grid.rotate ? 10 : 2;
+    u8 l = ss->grid.rotate ? 10 : 1;
     line[1].data[0 + 0] = l;
     line[1].data[1 + 0] = l;
     line[1].data[2 + 0] = l;
-    line[1].data[3 + 0] = l;
-    line[1].data[3 + 128] = l;
-    line[1].data[3 + 256] = l;
+    line[1].data[2 + 128] = l;
+    line[1].data[0 + 256] = l;
+    line[1].data[2 + 256] = l;
+    line[1].data[4 + 256] = l;
     line[1].data[1 + 384] = l;
+    line[1].data[2 + 384] = l;
     line[1].data[3 + 384] = l;
-    line[1].data[5 + 384] = l;
     line[1].data[2 + 512] = l;
-    line[1].data[3 + 512] = l;
-    line[1].data[4 + 512] = l;
-    line[1].data[3 + 640] = l;
 }
 
 void grid_fill_area_scr(u8 x, u8 y, u8 w, u8 h, u8 level, u8 page) {
     if (level == LED_OFF) return;
 
     u16 x_end = min(GRID_MAX_DIMENSION, x + w);
-    u16 y_end = min(GRID_MAX_DIMENSION, y + h);
+    u16 y1, y2;
+    y1 = y;
+    y2 = min(GRID_MAX_DIMENSION, y + h) - 1;
+    
+    if (page) {
+        if (y2 < 8) return;
+        if (y1 < 8) y1 = 8;
+        y1 -= 8;
+        y2 -= 8;
+    } else {
+        if (y1 >= 8) return;
+        if (y2 >= 8) y2 = 7;
+    }
     
     if (level == LED_DIM) {
         for (u16 _x = x; _x < x_end; _x++) {
-            for (u16 _y = y; _y < y_end; _y++)
+            for (u16 _y = y1; _y <= y2; _y++)
                 screen[_x][_y] >>= 1;
         }
 
     } else if (level == LED_BRI) {
         for (u16 _x = x; _x < x_end; _x++)
-            for (u16 _y = y; _y < y_end; _y++) {
+            for (u16 _y = y1; _y <= y2; _y++) {
                 screen[_x][_y] <<= 1; 
                 if (screen[_x][_y] > 15) screen[_x][_y] = 15;
             }
         
     } else {
         for (u16 _x = x; _x < x_end; _x++)
-            for (u16 _y = y; _y < y_end; _y++)
+            for (u16 _y = y1; _y <= y2; _y++)
                 screen[_x][_y] = level;
     }
 }

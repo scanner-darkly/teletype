@@ -32,7 +32,7 @@ static error_t status;
 static char error_msg[TELE_ERROR_MSG_LENGTH];
 static bool show_welcome_message;
 static screen_grid_mode grid_mode = GRID_MODE_OFF;
-static uint8_t grid_page = 0, grid_view_changed = 0;
+static uint8_t grid_page = 0, grid_ctrl = 0, grid_view_changed = 0;
 static uint8_t grid_x1 = 0, grid_y1 = 0, grid_x2 = 0, grid_y2 = 0;
 
 static const uint8_t D_INPUT = 1 << 0;
@@ -100,14 +100,14 @@ void set_live_mode() {
     activity_prev = 0xFF;
     grid_view_changed = true;
     if (grid_mode == GRID_MODE_FULL)
-        grid_mode = GRID_MODE_LED;
+        grid_mode = GRID_MODE_EDIT;
 }
 
 void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, scene_state_t *ss) {
     if (is_release) {
         if (match_ctrl(m, k, HID_SPACEBAR) || 
             (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_SPACEBAR))) {
-            grid_process_key(ss, grid_x1, grid_y1, 0);
+            grid_process_key(ss, grid_x1, grid_y1, 0, 1);
         }
         return;
     }
@@ -140,7 +140,13 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
         if (++grid_mode == GRID_MODE_LAST) {
             grid_mode = GRID_MODE_OFF;
             set_live_mode();
-        } else grid_view_changed = true;
+        } else {
+            if (grid_mode == GRID_MODE_FULL) {
+                grid_x2 = grid_x1;
+                grid_y2 = grid_y1;
+            }
+            grid_view_changed = true;
+        }
     }
     // C-<up>: move grid cursor
     else if (match_ctrl(m, k, HID_UP) ||
@@ -175,32 +181,28 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
         grid_view_changed = true;
     }
     // C-S-<up>: expand grid area up
-    else if (match_shift_ctrl(m, k, HID_UP) ||
-        (grid_mode == GRID_MODE_FULL && match_shift(m, k, HID_UP))) {
+    else if (match_shift_ctrl(m, k, HID_UP) && grid_mode != GRID_MODE_FULL) {
         if (grid_y2 > 0) {
             grid_y2--;
             grid_view_changed = true;
         }
     }
     // C-S-<down>: expand grid area down
-    else if (match_shift_ctrl(m, k, HID_DOWN) ||
-        (grid_mode == GRID_MODE_FULL && match_shift(m, k, HID_DOWN))) {
+    else if (match_shift_ctrl(m, k, HID_DOWN) && grid_mode != GRID_MODE_FULL) {
         if (grid_y2 < GRID_MAX_DIMENSION - 1) {
             grid_y2++;
             grid_view_changed = true;
         }
     }
     // C-S-<left>: expand grid area left
-    else if (match_shift_ctrl(m, k, HID_LEFT) ||
-        (grid_mode == GRID_MODE_FULL && match_shift(m, k, HID_LEFT))) {
+    else if (match_shift_ctrl(m, k, HID_LEFT) && grid_mode != GRID_MODE_FULL) {
         if (grid_x2 > 0) {
             grid_x2--;
             grid_view_changed = true;
         }
     }
     // C-S-<right>: expand grid area right
-    else if (match_shift_ctrl(m, k, HID_RIGHT) ||
-        (grid_mode == GRID_MODE_FULL && match_shift(m, k, HID_RIGHT))) {
+    else if (match_shift_ctrl(m, k, HID_RIGHT) && grid_mode != GRID_MODE_FULL) {
         if (grid_x2 < GRID_MAX_DIMENSION - 1) {
             grid_x2++;
             grid_view_changed = true;
@@ -212,11 +214,11 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
         grid_x2 = grid_x1;
         grid_y2 = grid_y1;
         grid_view_changed = true;
-        grid_process_key(ss, grid_x1, grid_y1, 1);
+        grid_process_key(ss, grid_x1, grid_y1, 1, 1);
     }
     // C-<PrtSc>: insert coordinates / size
     else if (!is_held_key && match_ctrl(m, k, HID_PRINTSCREEN) &&
-        grid_mode != GRID_MODE_FULL) {
+        grid_mode == GRID_MODE_EDIT) {
         u8 area_x, area_y, area_w, area_h;
         if (grid_x1 < grid_x2) {
             area_x = grid_x1;
@@ -262,10 +264,16 @@ void process_live_keys(uint8_t k, uint8_t m, bool is_held_key, bool is_release, 
         line_editor_process_keys(&le, HID_SPACEBAR, HID_MODIFIER_NONE, false);
         dirty |= D_INPUT;
     }
-    // C-<tab>: toggle grid page
+    // C-</>: toggle grid page
     else if (match_ctrl(m, k, HID_SLASH) ||
         (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_SLASH))) {
         if (++grid_page > 1) grid_page = 0;
+        grid_view_changed = true;
+    }
+    // C-<\>: toggle control view
+    else if (match_ctrl(m, k, HID_BACKSLASH) ||
+        (grid_mode == GRID_MODE_FULL && match_no_mod(m, k, HID_BACKSLASH))) {
+        grid_ctrl = !grid_ctrl;
         grid_view_changed = true;
     }
     // <enter>: execute command
@@ -329,7 +337,8 @@ bool screen_refresh_live(scene_state_t *ss) {
     if (grid_mode != GRID_MODE_OFF && (grid_view_changed || ss->grid.scr_dirty)) {
         grid_view_changed = 0;
         screen_dirty = true;
-        grid_screen_refresh(ss, grid_mode, grid_page, grid_x1, grid_y1, grid_x2, grid_y2);
+        grid_screen_refresh(ss, grid_mode, 
+            grid_page, grid_ctrl, grid_x1, grid_y1, grid_x2, grid_y2);
     }
     if (grid_mode == GRID_MODE_FULL) return true;
     

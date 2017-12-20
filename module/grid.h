@@ -14,14 +14,15 @@
 
 typedef enum {
     GRID_MODE_OFF = 0,
-    GRID_MODE_LED,
-    //GRID_MODE_CTRL,
+    GRID_MODE_EDIT,
     GRID_MODE_FULL,
     GRID_MODE_LAST
 } screen_grid_mode;
 
 extern void grid_refresh(scene_state_t *ss);
-extern void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode, u8 page, u8 x1, u8 y1, u8 x2, u8 y2);
-extern void grid_process_key(scene_state_t *ss, u8 x, u8 y, u8 z);
+extern void grid_screen_refresh(scene_state_t *ss, screen_grid_mode mode,
+    u8 page, u8 ctrl, u8 x1, u8 y1, u8 x2, u8 y2);
+extern void grid_process_key(scene_state_t *ss, u8 x, u8 y, u8 z,
+    u8 ignore_rotate);
 
 #endif
