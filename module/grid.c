@@ -158,28 +158,52 @@ void grid_refresh(scene_state_t *ss) {
             if (GXY.value_x || GXY.value_y) {
                 x = GXYC.x + GXY.value_x;
                 y = GXYC.y + GXY.value_y;
-                grid_fill_area(GXYC.x, y, GXYC.w, 1, GXYC.background);
-                grid_fill_area(x, GXYC.y, 1, GXYC.h, GXYC.background);
+                grid_fill_area(GXYC.x, y, GXYC.w, 1, GXYC.level);
+                grid_fill_area(x, GXYC.y, 1, GXYC.h, GXYC.level);
                 grid_fill_area(x, y, 1, 1, 15);
             }
         }
     }
 
+    u16 fv, ff, fp;
     for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
         if (GFC.enabled && SG.group[GFC.group].enabled) {
-            if (GF.dir) {
-                grid_fill_area(GFC.x, GFC.y, GFC.w, GFC.h - GF.value - 1, GFC.background);
-                grid_fill_area(GFC.x, GFC.y + GFC.h - GF.value - 1, GFC.w, GF.value + 1, 15);
-            } else { 
-                grid_fill_area(GFC.x, GFC.y, GF.value + 1, GFC.h, 15);
-                grid_fill_area(GFC.x + GF.value + 1, GFC.y, GFC.w - GF.value - 1, GFC.h, GFC.background);
+            switch (GF.type) {
+                case FADER_H_BAR:
+                    grid_fill_area(GFC.x, GFC.y, GF.value + 1, GFC.h, 15);
+                    grid_fill_area(GFC.x + GF.value + 1, GFC.y, GFC.w - GF.value - 1, GFC.h, GFC.level);
+                    break;
+                case FADER_V_BAR:
+                    grid_fill_area(GFC.x, GFC.y, GFC.w, GFC.h - GF.value - 1, GFC.level);
+                    grid_fill_area(GFC.x, GFC.y + GFC.h - GF.value - 1, GFC.w, GF.value + 1, 15);
+                    break;
+                case FADER_H_DOT:
+                    grid_fill_area(GFC.x + GF.value, GFC.y, 1, GFC.h, 15);
+                    break;
+                case FADER_V_DOT:
+                    grid_fill_area(GFC.x, GFC.y + GFC.h - GF.value - 1, GFC.w, 1, 15);
+                    break;
+                case FADER_H_FINE:
+                    fv = ((GFC.w << 4) * GF.value) / (GFC.level + 1);
+                    ff = fv >> 4;
+                    fp = fv & 15;
+                    grid_fill_area(GFC.x, GFC.y, ff, GFC.h, 15);
+                    if (fp) grid_fill_area(GFC.x + ff, GFC.y, 1, GFC.h, fp);
+                    break;
+                case FADER_V_FINE:
+                    fv = ((GFC.h << 4) * GF.value) / (GFC.level + 1);
+                    ff = fv >> 4;
+                    fp = fv & 15;
+                    grid_fill_area(GFC.x, GFC.y + GFC.h - ff, GFC.w, ff, 15);
+                    if (fp) grid_fill_area(GFC.x, GFC.y + GFC.h - ff - 1, GFC.w, ff, fp);
+                    break;
             }
         }
     }
 
     for (u16 i = 0; i < GRID_BUTTON_COUNT; i++)
         if (GBC.enabled && SG.group[GBC.group].enabled)
-            grid_fill_area(GBC.x, GBC.y, GBC.w, GBC.h, GB.state ? 15 : GBC.background);
+            grid_fill_area(GBC.x, GBC.y, GBC.w, GBC.h, GB.state ? 15 : GBC.level);
     
     u16 led;
     for (u16 i = 0; i < size_x; i++)
@@ -235,14 +259,44 @@ void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z, u8 ignore_rotate) {
         }
     }
 
-    for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
-        if (GFC.enabled && SG.group[GFC.group].enabled && grid_within_area(x, y, &GFC)) {
-            GF.value = GF.dir ? GFC.h + GFC.y - y - 1 : x - GFC.x;
-            if (GFC.script != -1) scripts[GFC.script] = 1;
-            SG.latest_fader = i;
-            SG.latest_group = GFC.group;
-            if (SG.group[GFC.group].script != -1) scripts[SG.group[GFC.group].script] = 1;
-            refresh = 1;
+    if (z) {
+        for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
+            if (GFC.enabled && SG.group[GFC.group].enabled && grid_within_area(x, y, &GFC)) {
+                switch (GF.type) {
+                    case FADER_H_BAR:
+                    case FADER_H_DOT:
+                        GF.value = x - GFC.x;
+                        break;
+                    case FADER_V_BAR:
+                    case FADER_V_DOT:
+                        GF.value = GFC.h + GFC.y - y - 1;
+                        break;
+                    case FADER_H_FINE:
+                        if (x == GFC.x) {
+                            if (GF.value) GF.value--;
+                        } else if (x == GFC.x + GFC.w - 1) {
+                            if (GF.value < GFC.level) GF.value++;
+                        } else {
+                            GF.value = ((((x - GFC.x) << 4) + 8) * (GFC.level + 1)) / (GFC.w << 4);
+                        }
+                        break;
+                    case FADER_V_FINE:
+                        if (y == GFC.y) {
+                            if (GF.value < GFC.level) GF.value++;
+                        } else if (y == GFC.y + GFC.h - 1) {
+                            if (GF.value) GF.value--;
+                        } else {
+                            GF.value = ((((y - GFC.y) << 4) + 8) * (GFC.level + 1)) / (GFC.h << 4);
+                        }
+                        break;
+                }
+                
+                if (GFC.script != -1) scripts[GFC.script] = 1;
+                SG.latest_fader = i;
+                SG.latest_group = GFC.group;
+                if (SG.group[GFC.group].script != -1) scripts[SG.group[GFC.group].script] = 1;
+                refresh = 1;
+            }
         }
     }
 
@@ -406,28 +460,52 @@ void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8
             if (GXY.value_x || GXY.value_y) {
                 x = GXYC.x + GXY.value_x;
                 y = GXYC.y + GXY.value_y;
-                grid_fill_area_scr(GXYC.x, y, GXYC.w, 1, GXYC.background, page);
-                grid_fill_area_scr(x, GXYC.y, 1, GXYC.h, GXYC.background, page);
+                grid_fill_area_scr(GXYC.x, y, GXYC.w, 1, GXYC.level, page);
+                grid_fill_area_scr(x, GXYC.y, 1, GXYC.h, GXYC.level, page);
                 grid_fill_area_scr(x, y, 1, 1, 15, page);
             }
         }
     }
 
+    u16 fv, ff, fp;
     for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
         if (GFC.enabled && SG.group[GFC.group].enabled) {
-            if (GF.dir) {
-                grid_fill_area_scr(GFC.x, GFC.y, GFC.w, GFC.h - GF.value - 1, GFC.background, page);
-                grid_fill_area_scr(GFC.x, GFC.y + GFC.h - GF.value - 1, GFC.w, GF.value + 1, 15, page);
-            } else { 
-                grid_fill_area_scr(GFC.x, GFC.y, GF.value + 1, GFC.h, 15, page);
-                grid_fill_area_scr(GFC.x + GF.value + 1, GFC.y, GFC.w - GF.value - 1, GFC.h, GFC.background, page);
+            switch (GF.type) {
+                case FADER_H_BAR:
+                    grid_fill_area_scr(GFC.x, GFC.y, GF.value + 1, GFC.h, 15, page);
+                    grid_fill_area_scr(GFC.x + GF.value + 1, GFC.y, GFC.w - GF.value - 1, GFC.h, GFC.level, page);
+                    break;
+                case FADER_V_BAR:
+                    grid_fill_area_scr(GFC.x, GFC.y, GFC.w, GFC.h - GF.value - 1, GFC.level, page);
+                    grid_fill_area_scr(GFC.x, GFC.y + GFC.h - GF.value - 1, GFC.w, GF.value + 1, 15, page);
+                    break;
+                case FADER_H_DOT:
+                    grid_fill_area_scr(GFC.x + GF.value, GFC.y, 1, GFC.h, 15, page);
+                    break;
+                case FADER_V_DOT:
+                    grid_fill_area_scr(GFC.x, GFC.y + GFC.h - GF.value - 1, GFC.w, 1, 15, page);
+                    break;
+                case FADER_H_FINE:
+                    fv = ((GFC.w << 4) * GF.value) / (GFC.level + 1);
+                    ff = fv >> 4;
+                    fp = fv & 15;
+                    grid_fill_area_scr(GFC.x, GFC.y, ff, GFC.h, 15, page);
+                    if (fp) grid_fill_area_scr(GFC.x + ff, GFC.y, 1, GFC.h, fp, page);
+                    break;
+                case FADER_V_FINE:
+                    fv = ((GFC.h << 4) * GF.value) / (GFC.level + 1);
+                    ff = fv >> 4;
+                    fp = fv & 15;
+                    grid_fill_area_scr(GFC.x, GFC.y + GFC.h - ff, GFC.w, ff, 15, page);
+                    if (fp) grid_fill_area_scr(GFC.x, GFC.y + GFC.h - ff - 1, GFC.w, ff, fp, page);
+                    break;
             }
         }
     }
 
     for (u16 i = 0; i < GRID_BUTTON_COUNT; i++)
         if (GBC.enabled && SG.group[GBC.group].enabled)
-            grid_fill_area_scr(GBC.x, GBC.y, GBC.w, GBC.h, GB.state ? 15 : GBC.background, page);
+            grid_fill_area_scr(GBC.x, GBC.y, GBC.w, GBC.h, GB.state ? 15 : GBC.level, page);
     
     u16 pd = page ? 8 : 0;
     s8 l;

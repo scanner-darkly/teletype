@@ -32,6 +32,12 @@
 #define LED_DIM -1
 #define LED_BRI -2
 #define LED_OFF -3
+#define FADER_H_BAR 0
+#define FADER_V_BAR 1
+#define FADER_H_DOT 2
+#define FADER_V_DOT 3
+#define FADER_H_FINE 4
+#define FADER_V_FINE 5
 
 #define METRO_MIN_MS 25
 #define METRO_MIN_UNSUPPORTED_MS 2
@@ -113,7 +119,7 @@ typedef struct {
     u8 group;
     u8 x, y;
     u8 w, h;
-    u8 background;
+    u8 level;
     s8 script;
 } grid_common_t;
 
@@ -132,7 +138,7 @@ typedef struct {
 
 typedef struct {
     grid_common_t common;
-    u8 dir; // 0 - horiz 1 - vert
+    u8 type;
     u8 value;
 } grid_fader_t;
 

@@ -46,7 +46,8 @@ static void grid_common_init(grid_common_t *gc);
 static s16 scale(s16 a, s16 b, s16 x, s16 y, s16 value);
 static void grid_rectangle(scene_state_t *ss, s16 x, s16 y, s16 w, s16 h, u8 fill, u8 border);
 static void grid_init_button(scene_state_t *ss, u8 group, u16 i, u8 x, u8 y, u8 w, u8 h, u8 latch, u8 level, u8 script);
-static void grid_init_fader(scene_state_t *ss, u8 group, u16 i, u8 x, u8 y, u8 w, u8 h, u8 dir, u8 level, u8 script);
+static void grid_init_fader(scene_state_t *ss, u8 group, u16 i, u8 x, u8 y, u8 w, u8 h, u8 type, u8 level, u8 script);
+static s16 grid_fader_max_value(scene_state_t *ss, u16 i);
 
 static void op_G_RST_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
 static void op_G_CLR_get    (const void *data, scene_state_t *ss, exec_state_t *es,  command_state_t *cs);
@@ -228,7 +229,7 @@ static void op_G_RST_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
 
     for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
         grid_common_init(&(GFC));
-        GF.dir = 0;
+        GF.type = FADER_H_BAR;
         GF.value = 0;
     }
     
@@ -311,7 +312,7 @@ static void op_G_GRP_RST_get(const void *NOTUSED(data), scene_state_t *ss, exec_
     for (u8 i = 0; i < GRID_FADER_COUNT; i++)
         if (GFC.group == group) {
             grid_common_init(&(GFC));
-            GF.dir = 0;
+            GF.type = FADER_H_BAR;
             GF.value = 0;
         }
     
@@ -547,14 +548,14 @@ static void op_G_BTN_V_set(const void *NOTUSED(data), scene_state_t *ss, exec_st
 
 static void op_G_BTN_L_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 i = cs_pop(cs);
-    cs_push(cs, i < (s16)0 || i >= (s16)GRID_BUTTON_COUNT ? 0 : GBC.background);
+    cs_push(cs, i < (s16)0 || i >= (s16)GRID_BUTTON_COUNT ? 0 : GBC.level);
 }
 
 static void op_G_BTN_L_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 i = cs_pop(cs);
     GET_LEVEL(level);
     if (i < (s16)0 || i >= (s16)GRID_BUTTON_COUNT) return;
-    GBC.background = level;
+    GBC.level = level;
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
@@ -617,12 +618,12 @@ static void op_G_BTNV_set(const void *NOTUSED(data), scene_state_t *ss, exec_sta
 }
 
 static void op_G_BTNL_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
-    cs_push(cs, SG.button[SG.latest_button].common.background);
+    cs_push(cs, SG.button[SG.latest_button].common.level);
 }
 
 static void op_G_BTNL_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     GET_LEVEL(level);
-    SG.button[SG.latest_button].common.background = level;
+    SG.button[SG.latest_button].common.level = level;
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
@@ -722,10 +723,10 @@ static void op_G_GBTN_L_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
     
     if (group < (s16)0 || group > (s16)GRID_GROUP_COUNT) return;
 
-    u8 is_odd = 1;
+    u8 is_odd = 0;
     for (u16 i = 0; i < GRID_BUTTON_COUNT; i++)
         if (GBC.group == group) {
-            GBC.background = is_odd ? odd : even;
+            GBC.level = is_odd ? odd : even;
             is_odd = !is_odd;
         }
     SG.scr_dirty = SG.grid_dirty = 1;
@@ -737,15 +738,28 @@ static void op_G_FDR_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     s16 y = cs_pop(cs);
     s16 w = cs_pop(cs);
     s16 h = cs_pop(cs);
-    s16 dir = cs_pop(cs);
-    GET_LEVEL(level);
+    s16 type = cs_pop(cs);
+    s16 level = cs_pop(cs);
     s16 script = cs_pop(cs) - 1;
     
     if (i < (s16)0 || i >= (s16)GRID_FADER_COUNT) return;
     if (script < 0 || script > INIT_SCRIPT) script = -1;
     CLAMP_X_Y_W_H(return);
+    if (type > FADER_V_FINE) type = FADER_H_BAR;
+    if (type == FADER_H_FINE || type == FADER_V_FINE) {
+        s16 maxlevel = ((type == FADER_H_FINE ? w : h) << 4) - 1;
+        if (level < 0)
+            level = 0;
+        else if (level > maxlevel)
+            level = maxlevel;
+    } else {
+        if (level < (s16)LED_OFF)
+            level = LED_OFF;
+        else if (level > (s16)15)
+            level = 15;
+    }
 
-    grid_init_fader(ss, SG.current_group, i, x, y, w, h, dir != 0, level, script);
+    grid_init_fader(ss, SG.current_group, i, x, y, w, h, type, level, script);
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
@@ -756,16 +770,29 @@ static void op_G_GFD_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     s16 y = cs_pop(cs);
     s16 w = cs_pop(cs);
     s16 h = cs_pop(cs);
-    s16 dir = cs_pop(cs);
-    GET_LEVEL(level);
+    s16 type = cs_pop(cs);
+    s16 level = cs_pop(cs);
     s16 script = cs_pop(cs) - 1;
     
     if (group < (s16)0 || group > (s16)GRID_GROUP_COUNT) return;
     if (i < (s16)0 || i >= (s16)GRID_FADER_COUNT) return;
     if (script < 0 || script > INIT_SCRIPT) script = -1;
     CLAMP_X_Y_W_H(return);
+    if (type > FADER_V_FINE) type = FADER_H_BAR;
+    if (type == FADER_H_FINE || type == FADER_V_FINE) {
+        s16 maxlevel = ((type == FADER_H_FINE ? w : h) << 4) - 1;
+        if (level < 0)
+            level = 0;
+        else if (level > maxlevel)
+            level = maxlevel;
+    } else {
+        if (level < (s16)LED_OFF)
+            level = LED_OFF;
+        else if (level > (s16)15)
+            level = 15;
+    }
 
-    grid_init_fader(ss, group, i, x, y, w, h, dir != 0, level, script);
+    grid_init_fader(ss, group, i, x, y, w, h, type, level, script);
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
@@ -775,8 +802,8 @@ static void op_G_FDX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     s16 _y = cs_pop(cs);
     s16 _w = cs_pop(cs);
     s16 _h = cs_pop(cs);
-    s16 dir = cs_pop(cs) != 0;
-    GET_LEVEL(level);
+    s16 type = cs_pop(cs);
+    s16 level = cs_pop(cs);
     s16 script = cs_pop(cs) - 1;
     s16 count_x = cs_pop(cs);
     s16 count_y = cs_pop(cs);
@@ -787,6 +814,19 @@ static void op_G_FDX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     if (count_x > (s16)16) count_x = 16;
     if (count_y <= (s16)0) return;
     if (count_y > (s16)16) count_y = 16;
+    if (type > FADER_V_FINE) type = FADER_H_BAR;
+    if (type == FADER_H_FINE || type == FADER_V_FINE) {
+        s16 maxlevel = ((type == FADER_H_FINE ? _w : _h) << 4) - 1;
+        if (level < 0)
+            level = 0;
+        else if (level > maxlevel)
+            level = maxlevel;
+    } else {
+        if (level < (s16)LED_OFF)
+            level = LED_OFF;
+        else if (level > (s16)15)
+            level = 15;
+    }
     
     u16 i;
     s16 x, y, w, h;
@@ -799,7 +839,7 @@ static void op_G_FDX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
             y = _y + _h * cy;
             h = _h;
             CLAMP_X_Y_W_H(continue);
-            grid_init_fader(ss, SG.current_group, i, x, y, w, h, dir, level, script);
+            grid_init_fader(ss, SG.current_group, i, x, y, w, h, type, level, script);
         }
     
     SG.scr_dirty = SG.grid_dirty = 1;
@@ -812,8 +852,8 @@ static void op_G_GFX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     s16 _y = cs_pop(cs);
     s16 _w = cs_pop(cs);
     s16 _h = cs_pop(cs);
-    s16 dir = cs_pop(cs);
-    GET_LEVEL(level);
+    s16 type = cs_pop(cs);
+    s16 level = cs_pop(cs);
     s16 script = cs_pop(cs) - 1;
     s16 count_x = cs_pop(cs);
     s16 count_y = cs_pop(cs);
@@ -825,6 +865,19 @@ static void op_G_GFX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     if (count_x > (s16)16) count_x = 16;
     if (count_y <= (s16)0) return;
     if (count_y > (s16)16) count_y = 16;
+    if (type > FADER_V_FINE) type = FADER_H_BAR;
+    if (type == FADER_H_FINE || type == FADER_V_FINE) {
+        s16 maxlevel = ((type == FADER_H_FINE ? _w : _h) << 4) - 1;
+        if (level < 0)
+            level = 0;
+        else if (level > maxlevel)
+            level = maxlevel;
+    } else {
+        if (level < (s16)LED_OFF)
+            level = LED_OFF;
+        else if (level > (s16)15)
+            level = 15;
+    }
     
     u16 i;
     s16 x, y, w, h;
@@ -837,7 +890,7 @@ static void op_G_GFX_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
             y = _y + _h * cy;
             h = _h;
             CLAMP_X_Y_W_H(continue);
-            grid_init_fader(ss, group, i, x, y, w, h, dir, level, script);
+            grid_init_fader(ss, group, i, x, y, w, h, type, level, script);
         }
     
     SG.scr_dirty = SG.grid_dirty = 1;
@@ -864,8 +917,8 @@ static void op_G_FDR_V_get(const void *NOTUSED(data), scene_state_t *ss, exec_st
         return;
     }
     
-    s16 value = scale(0, GF.dir ? GFC.h - 1 : GFC.w - 1, SG.group[GFC.group].fader_min,
-        SG.group[GFC.group].fader_max, GF.value);
+    s16 value = scale(0, grid_fader_max_value(ss, i),
+        SG.group[GFC.group].fader_min, SG.group[GFC.group].fader_max, GF.value);
     cs_push(cs, value);
 }
 
@@ -877,24 +930,25 @@ static void op_G_FDR_V_set(const void *NOTUSED(data), scene_state_t *ss, exec_st
     if (value < SG.group[GFC.group].fader_min) value = SG.group[GFC.group].fader_min;
     else if (value > SG.group[GFC.group].fader_max) value = SG.group[GFC.group].fader_max;
     
-    GF.value = scale(SG.group[GFC.group].fader_min, 
-        SG.group[GFC.group].fader_max, 0, GF.dir ? GFC.h - 1 : GFC.w - 1, value);
+    GF.value = scale(SG.group[GFC.group].fader_min,
+        SG.group[GFC.group].fader_max, 0, grid_fader_max_value(ss, i), value);
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_FDR_N_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 i = cs_pop(cs);
-    cs_push(cs, i < (s16)0 || i >= (s16)GRID_FADER_COUNT ? 1 : GF.value + 1);
+    cs_push(cs, i < (s16)0 || i >= (s16)GRID_FADER_COUNT ? 0 : GF.value);
 }
 
 static void op_G_FDR_N_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 i = cs_pop(cs);
-    s16 value = cs_pop(cs) - 1;
+    s16 value = cs_pop(cs);
     
     if (i < (s16)0 || i >= (s16)GRID_FADER_COUNT) return;
+
+    s16 maxvalue = grid_fader_max_value(ss, i);
     if (value < (s16)0) value = 0;
-    else if (GF.dir && value >= (s16)GFC.h) value = GFC.h - 1;
-    else if (!GF.dir && value >= (s16)GFC.w) value = GFC.w - 1;
+    else if (value > maxvalue) value = maxvalue;
     
     GF.value = value;
     SG.scr_dirty = SG.grid_dirty = 1;
@@ -902,14 +956,28 @@ static void op_G_FDR_N_set(const void *NOTUSED(data), scene_state_t *ss, exec_st
 
 static void op_G_FDR_L_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 i = cs_pop(cs);
-    cs_push(cs, i < (s16)0 || i >= (s16)GRID_FADER_COUNT ? 0 : GFC.background);
+    cs_push(cs, i < (s16)0 || i >= (s16)GRID_FADER_COUNT ? 0 : GFC.level);
 }
 
 static void op_G_FDR_L_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 i = cs_pop(cs);
-    GET_LEVEL(level);
+    s16 level = cs_pop(cs);
     if (i < (s16)0 || i >= (s16)GRID_FADER_COUNT) return;
-    GFC.background = level;
+    
+    if (GF.type == FADER_H_FINE || GF.type == FADER_V_FINE) {
+        s16 maxlevel = ((GF.type == FADER_H_FINE ? GFC.w : GFC.h) << 4) - 1;
+        if (level < 0)
+            level = 0;
+        else if (level > maxlevel)
+            level = maxlevel;
+    } else {
+        if (level < (s16)LED_OFF)
+            level = LED_OFF;
+        else if (level > (s16)15)
+            level = 15;
+    }
+    
+    GFC.level = level;
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
@@ -963,8 +1031,8 @@ static void op_G_FDRI_get(const void *NOTUSED(data), scene_state_t *ss, exec_sta
 
 static void op_G_FDRV_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     u8 i = SG.latest_fader;
-    s16 value = scale(0, GF.dir ? GFC.h - 1 : GFC.w - 1, SG.group[GFC.group].fader_min,
-        SG.group[GFC.group].fader_max, GF.value);
+    s16 value = scale(0, grid_fader_max_value(ss, i),
+        SG.group[GFC.group].fader_min, SG.group[GFC.group].fader_max, GF.value);
     cs_push(cs, value);
 }
 
@@ -976,33 +1044,48 @@ static void op_G_FDRV_set(const void *NOTUSED(data), scene_state_t *ss, exec_sta
     else if (value > SG.group[GFC.group].fader_max) value = SG.group[GFC.group].fader_max;
     
     GF.value = scale(SG.group[GFC.group].fader_min, 
-        SG.group[GFC.group].fader_max, 0, GF.dir ? GFC.h - 1 : GFC.w - 1, value);
+        SG.group[GFC.group].fader_max, 0, grid_fader_max_value(ss, i), value);
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_FDRN_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
-    cs_push(cs, SG.fader[SG.latest_fader].value + 1);
+    cs_push(cs, SG.fader[SG.latest_fader].value);
 }
 
 static void op_G_FDRN_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
-    s16 value = cs_pop(cs) - 1;
+    s16 value = cs_pop(cs);
     s16 i = SG.latest_fader;
     
+    s16 maxvalue = grid_fader_max_value(ss, i);
     if (value < (s16)0) value = 0;
-    else if (GF.dir && value >= (s16)GFC.h) value = GFC.h - 1;
-    else if (!GF.dir && value >= (s16)GFC.w) value = GFC.w - 1;
+    else if (value > maxvalue) value = maxvalue;
     
     GF.value = value;
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_FDRL_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
-    cs_push(cs, SG.fader[SG.latest_fader].common.background);
+    cs_push(cs, SG.fader[SG.latest_fader].common.level);
 }
 
 static void op_G_FDRL_set(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
-    GET_LEVEL(level);
-    SG.fader[SG.latest_fader].common.background = level;
+    s16 level = cs_pop(cs);
+    u16 i = SG.latest_fader;
+    
+    if (GF.type == FADER_H_FINE || GF.type == FADER_V_FINE) {
+        s16 maxlevel = ((GF.type == FADER_H_FINE ? GFC.w : GFC.h) << 4) - 1;
+        if (level < 0)
+            level = 0;
+        else if (level > maxlevel)
+            level = maxlevel;
+    } else {
+        if (level < (s16)LED_OFF)
+            level = LED_OFF;
+        else if (level > (s16)15)
+            level = 15;
+    }
+    
+    GFC.level = level;
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
@@ -1054,10 +1137,38 @@ static void op_G_FDR_PR_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
     if (!GFC.enabled || !SG.group[GFC.group].enabled) return;
 
     if (value < (s16)0) value = 0;
-    else if (GF.dir && value >= (s16)GFC.h) value = GFC.h - 1;
-    else if (!GF.dir && value >= (s16)GFC.w) value = GFC.w - 1;
+    else if (GF.type && value >= (s16)GFC.h) value = GFC.h - 1;
+    else if (!GF.type && value >= (s16)GFC.w) value = GFC.w - 1;
     
-    GF.value = value;
+    switch (GF.type) {
+        case FADER_H_BAR:
+        case FADER_H_DOT:
+        case FADER_V_BAR:
+        case FADER_V_DOT:
+            GF.value = value;
+            break;
+        case FADER_H_FINE:
+            if (value == 0) {
+                if (GF.value) GF.value--;
+            } else if (value == GFC.w - 1) {
+                if (GF.value < GFC.level) GF.value++;
+            } else {
+                GF.value = (((value << 4) + 8) * (GFC.level + 1)) /
+                    (GFC.w << 4);
+            }
+            break;
+        case FADER_V_FINE:
+            if (value == 0) {
+                if (GF.value) GF.value--;
+            } else if (value == GFC.h - 1) {
+                if (GF.value < GFC.level) GF.value++;
+            } else {
+                GF.value = (((value << 4) + 8) * (GFC.level + 1)) /
+                    (GFC.h << 4);
+            }
+            break;
+    }
+    
     SG.latest_fader = i;
     SG.latest_group = GFC.group;
     
@@ -1087,34 +1198,49 @@ static void op_G_GFDR_V_get(const void *NOTUSED(data), scene_state_t *ss, exec_s
     for (u16 i = 0; i < GRID_FADER_COUNT; i++)
         if (GFC.group == group)
             GF.value = scale(SG.group[group].fader_min,
-                SG.group[group].fader_max, 0, GF.dir ? GFC.h - 1 : GFC.w - 1, value);
+                SG.group[group].fader_max, 0, grid_fader_max_value(ss, i), value);
                 
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_GFDR_N_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 group = cs_pop(cs);
-    s16 value = cs_pop(cs) - 1;
+    s16 value = cs_pop(cs);
     
     if (group < (s16)0 || group > (s16)GRID_GROUP_COUNT) return;
     if (value < (s16)0) value = 0;
 
     for (u16 i = 0; i < GRID_FADER_COUNT; i++)
-        if (GFC.group == group) GF.value = min(GF.dir ? GFC.h - 1 : GFC.w - 1, value);
+        if (GFC.group == group)
+            GF.value = min(grid_fader_max_value(ss, i), value);
     SG.scr_dirty = SG.grid_dirty = 1;
 }
 
 static void op_G_GFDR_L_get(const void *NOTUSED(data), scene_state_t *ss, exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 group = cs_pop(cs);
-    GET_LEVEL(odd);
-    GET_LEVEL(even);
+    s16 odd = cs_pop(cs);
+    s16 even = cs_pop(cs);
     
     if (group < (s16)0 || group > (s16)GRID_GROUP_COUNT) return;
 
-    u8 is_odd = 1;
+    s16 level;
+    u8 is_odd = 0;
     for (u16 i = 0; i < GRID_FADER_COUNT; i++)
         if (GFC.group == group) {
-            GFC.background = is_odd ? odd : even;
+            level = is_odd ? odd : even;
+            if (GF.type == FADER_H_FINE || GF.type == FADER_V_FINE) {
+                s16 maxlevel = ((GF.type == FADER_H_FINE ? GFC.w : GFC.h) << 4) - 1;
+                if (level < 0)
+                    level = 0;
+                else if (level > maxlevel)
+                    level = maxlevel;
+            } else {
+                if (level < (s16)LED_OFF)
+                    level = LED_OFF;
+                else if (level > (s16)15)
+                    level = 15;
+            }
+            GFC.level = level;
             is_odd = !is_odd;
         }
     SG.scr_dirty = SG.grid_dirty = 1;
@@ -1149,7 +1275,7 @@ static void op_G_XYP_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
     GXYC.y = y;
     GXYC.w = w;
     GXYC.h = h;
-    GXYC.background = level;
+    GXYC.level = level;
     GXYC.script = script;
     GXY.value_x = 0;
     GXY.value_y = 0;
@@ -1172,7 +1298,7 @@ void grid_common_init(grid_common_t *gc) {
     gc->group = 0;
     gc->x = gc->y = 0;
     gc->w = gc->h = 1;
-    gc->background = 5;
+    gc->level = 5;
     gc->script = -1;
 }
 
@@ -1214,20 +1340,35 @@ static void grid_init_button(scene_state_t *ss, u8 group, u16 i, u8 x, u8 y, u8 
     GBC.y = y;
     GBC.w = w;
     GBC.h = h;
-    GBC.background = level;
+    GBC.level = level;
     GBC.script = script;
     GB.latch = latch != 0;
     if (!GB.latch) GB.state = 0;
 }
 
-static void grid_init_fader(scene_state_t *ss, u8 group, u16 i, u8 x, u8 y, u8 w, u8 h, u8 dir, u8 level, u8 script) {
+static void grid_init_fader(scene_state_t *ss, u8 group, u16 i, u8 x, u8 y, u8 w, u8 h, u8 type, u8 level, u8 script) {
     GFC.enabled = true;
     GFC.group = group;
     GFC.x = x;
     GFC.y = y;
     GFC.w = w;
     GFC.h = h;
-    GFC.background = level;
+    GFC.level = level;
     GFC.script = script;
-    GF.dir = dir != 0;
+    GF.type = type;
+}
+
+static s16 grid_fader_max_value(scene_state_t *ss, u16 i) {
+    switch (GF.type) {
+        case FADER_H_BAR:
+        case FADER_H_DOT:
+            return GFC.w - 1;
+        case FADER_V_BAR:
+        case FADER_V_DOT:
+            return GFC.h - 1;
+        case FADER_H_FINE:
+        case FADER_V_FINE:
+            return GFC.level;
+    }
+    return 0;
 }
