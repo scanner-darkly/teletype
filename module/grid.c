@@ -3,7 +3,12 @@
 #include "globals.h"
 #include "state.h"
 #include "teletype.h"
+#include "timers.h"
 #include "util.h"
+
+#define GRID_MAX_KEY_PRESSED 5
+#define GRID_KEY_HOLD_DELAY 700
+#define GRID_KEY_REPEAT_RATE 40
 
 static const u8 glyph[16][6] = {
     {
@@ -136,9 +141,23 @@ static const u8 glyph[16][6] = {
     }
 };
 
+typedef struct {
+    u8 used;
+    u8 key;
+    u8 x;
+    u8 y;
+    u8 ignore_rotate;
+    scene_state_t *ss;
+    softTimer_t timer;
+} hold_repeat_timer;
+
 static u16 size_x = 16, size_y = 8;
 static u8 screen[GRID_MAX_DIMENSION][GRID_MAX_DIMENSION/2];
+static hold_repeat_timer hold_repeat_timers[GRID_MAX_KEY_PRESSED];
+static u8 timers_uninitialized = 1;
 
+static void hold_repeat_timer_callback(void* o);
+static void grid_process_key_hold_repeat(scene_state_t *ss, u8 _x, u8 _y, u8 ignore_rotate, u8 is_hold);
 static void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u8 y2);
 static void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8 y1, u8 x2, u8 y2);
 static void grid_screen_refresh_info(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u8 y2);
@@ -242,6 +261,34 @@ void grid_refresh(scene_state_t *ss) {
 }
 
 void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z, u8 ignore_rotate) {
+    if (timers_uninitialized) {
+        timers_uninitialized = 0;
+        for (u8 i = 0; i < GRID_MAX_KEY_PRESSED; i++)
+            hold_repeat_timers[i].used = 0;
+    }
+    
+    u8 key = (_y << 4) | _x;
+    if (z) {
+        for (u8 i = 0; i < GRID_MAX_KEY_PRESSED; i++)
+            if (!hold_repeat_timers[i].used || hold_repeat_timers[i].key == key) {
+                hold_repeat_timers[i].used = 1;
+                hold_repeat_timers[i].key = key;
+                hold_repeat_timers[i].x = _x;
+                hold_repeat_timers[i].y = _y;
+                hold_repeat_timers[i].ignore_rotate = ignore_rotate;
+                hold_repeat_timers[i].ss = ss;
+                timer_add(&hold_repeat_timers[i].timer, GRID_KEY_HOLD_DELAY,
+                    &hold_repeat_timer_callback, (void *)&hold_repeat_timers[i]);
+                break;
+            }
+    } else {
+        for (u8 i = 0; i < GRID_MAX_KEY_PRESSED; i++)
+            if (hold_repeat_timers[i].key == key) {
+                timer_remove(&hold_repeat_timers[i].timer);
+                hold_repeat_timers[i].used = 0;
+            }
+    }
+
     u8 x = SG.rotate && !ignore_rotate ? monome_size_x() - _x - 1 : _x;
     u8 y = SG.rotate && !ignore_rotate ? monome_size_y() - _y - 1 : _y;
     u8 refresh = 0;
@@ -322,6 +369,64 @@ void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z, u8 ignore_rotate) {
         if (scripts[i]) run_script(ss, i);
 
     SG.grid_dirty = SG.scr_dirty = refresh;
+}
+
+void grid_process_key_hold_repeat(scene_state_t *ss, u8 _x, u8 _y, u8 ignore_rotate, u8 is_hold) {
+    u8 x = SG.rotate && !ignore_rotate ? monome_size_x() - _x - 1 : _x;
+    u8 y = SG.rotate && !ignore_rotate ? monome_size_y() - _y - 1 : _y;
+    u8 refresh = 0;
+    u8 scripts[SCRIPT_COUNT];
+    for (u8 i = 0; i < SCRIPT_COUNT; i++) scripts[i] = 0;
+    
+    u8 update = 0;
+    for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
+        if (GFC.enabled && SG.group[GFC.group].enabled && grid_within_area(x, y, &GFC)) {
+            update = 0;
+            if (GF.type == FADER_H_FINE) {
+                if (x == GFC.x) {
+                    if (GF.value) GF.value--;
+                    update = 1;
+                } else if (x == GFC.x + GFC.w - 1) {
+                    if (GF.value < GFC.level) GF.value++;
+                    update = 1;
+                }
+            } else if (GF.type == FADER_V_FINE) {
+                if (y == GFC.y) {
+                    if (GF.value < GFC.level) GF.value++;
+                    update = 1;
+                } else if (y == GFC.y + GFC.h - 1) {
+                    if (GF.value) GF.value--;
+                    update = 1;
+                }
+            }
+            
+            if (update) {
+                if (GFC.script != -1) scripts[GFC.script] = 1;
+                SG.latest_fader = i;
+                SG.latest_group = GFC.group;
+                if (SG.group[GFC.group].script != -1) scripts[SG.group[GFC.group].script] = 1;
+                refresh = 1;
+            }
+        }
+    }
+    
+    for (u8 i = 0; i < SCRIPT_COUNT; i++)
+        if (scripts[i]) run_script(ss, i);
+
+    SG.grid_dirty = SG.scr_dirty = refresh;
+}
+
+void hold_repeat_timer_callback(void* o) {
+    hold_repeat_timer* timer = o;
+    u8 is_hold = timer->used == 1;
+    if (is_hold) {
+        timer_set(&timer->timer, GRID_KEY_REPEAT_RATE);
+        timer->used = 2;
+    }
+    grid_process_key_hold_repeat(timer->ss, timer->x, timer->y, timer->ignore_rotate, is_hold);
+}
+
+void grid_process_fader_slew(scene_state_t *ss) {
 }
 
 bool grid_within_area(u8 x, u8 y, grid_common_t *gc) {
