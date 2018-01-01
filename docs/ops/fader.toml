@@ -1,0 +1,4 @@
+["FADER"]
+prototype = "FADER x"
+aliases = ["FB"]
+short = "reads the value of the `FADER` slider `x`; default return range is from 0 to 16383"

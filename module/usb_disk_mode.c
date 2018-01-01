@@ -110,7 +110,7 @@ void tele_usb_disk() {
             char blank = 0;
             for (int l = 0; l < SCENE_TEXT_LINES; l++) {
                 if (strlen(text[l])) {
-                    file_write_buf((uint8_t*)text[l], strlen(text[l]));
+                    file_write_buf((uint8_t *)text[l], strlen(text[l]));
                     file_putc('\n');
                     blank = 0;
                 }
@@ -135,7 +135,7 @@ void tele_usb_disk() {
                 for (int l = 0; l < ss_get_script_len(&scene, s); l++) {
                     file_putc('\n');
                     print_command(ss_get_script_command(&scene, s, l), input);
-                    file_write_buf((uint8_t*)input, strlen(input));
+                    file_write_buf((uint8_t *)input, strlen(input));
                 }
             }
 
@@ -147,7 +147,7 @@ void tele_usb_disk() {
 
             for (int b = 0; b < 4; b++) {
                 itoa(ss_get_pattern_len(&scene, b), input, 10);
-                file_write_buf((uint8_t*)input, strlen(input));
+                file_write_buf((uint8_t *)input, strlen(input));
                 if (b == 3)
                     file_putc('\n');
                 else
@@ -156,7 +156,7 @@ void tele_usb_disk() {
 
             for (int b = 0; b < 4; b++) {
                 itoa(ss_get_pattern_wrap(&scene, b), input, 10);
-                file_write_buf((uint8_t*)input, strlen(input));
+                file_write_buf((uint8_t *)input, strlen(input));
                 if (b == 3)
                     file_putc('\n');
                 else
@@ -165,7 +165,7 @@ void tele_usb_disk() {
 
             for (int b = 0; b < 4; b++) {
                 itoa(ss_get_pattern_start(&scene, b), input, 10);
-                file_write_buf((uint8_t*)input, strlen(input));
+                file_write_buf((uint8_t *)input, strlen(input));
                 if (b == 3)
                     file_putc('\n');
                 else
@@ -174,7 +174,7 @@ void tele_usb_disk() {
 
             for (int b = 0; b < 4; b++) {
                 itoa(ss_get_pattern_end(&scene, b), input, 10);
-                file_write_buf((uint8_t*)input, strlen(input));
+                file_write_buf((uint8_t *)input, strlen(input));
                 if (b == 3)
                     file_putc('\n');
                 else
@@ -186,7 +186,7 @@ void tele_usb_disk() {
             for (int l = 0; l < 64; l++) {
                 for (int b = 0; b < 4; b++) {
                     itoa(ss_get_pattern_val(&scene, b, l), input, 10);
-                    file_write_buf((uint8_t*)input, strlen(input));
+                    file_write_buf((uint8_t *)input, strlen(input));
                     if (b == 3)
                         file_putc('\n');
                     else
@@ -195,7 +195,7 @@ void tele_usb_disk() {
             }
 
             grid_usb_write(&scene);
-            
+
             file_close();
             lun_state |= (1 << lun);  // LUN test is done.
 
@@ -266,7 +266,8 @@ void tele_usb_disk() {
                                 else if (c == 'G') {
                                     grid_state = grid_num = grid_count = 0;
                                     s = 11;
-                                } else {
+                                }
+                                else {
                                     s = c - 49;
                                     if (s < 0 || s > 7) s = -1;
                                 }
@@ -392,7 +393,7 @@ void tele_usb_disk() {
                         // GRID
                         else if (s == 11) {
                             grid_usb_read(&scene, c);
-                        }                        
+                        }
                     }
 
 
@@ -441,13 +442,13 @@ static void grid_usb_read(scene_state_t *scene, char c) {
                 grid_count = 0;
                 grid_state = 1;
                 if (!file_eof()) file_getc();
-                if (!file_eof()) file_getc(); // eat \n\n
+                if (!file_eof()) file_getc();  // eat \n\n
             }
         }
-    } else if (grid_state == 1) {
-        if (c >= '0' && c <= '9') {
-            grid_num = grid_num * 10 + c - '0';
-        } else if (c == '\t' || c == '\n') {
+    }
+    else if (grid_state == 1) {
+        if (c >= '0' && c <= '9') { grid_num = grid_num * 10 + c - '0'; }
+        else if (c == '\t' || c == '\n') {
             if (grid_count < GRID_FADER_COUNT) {
                 scene->grid.fader[grid_count].value = grid_num;
                 grid_num = 0;

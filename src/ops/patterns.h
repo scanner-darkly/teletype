@@ -31,5 +31,9 @@ extern const tele_op_t op_P_PUSH;
 extern const tele_op_t op_PN_PUSH;
 extern const tele_op_t op_P_POP;
 extern const tele_op_t op_PN_POP;
+extern const tele_op_t op_P_MIN;
+extern const tele_op_t op_PN_MIN;
+extern const tele_op_t op_P_MAX;
+extern const tele_op_t op_PN_MAX;
 
 #endif

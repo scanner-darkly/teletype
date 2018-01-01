@@ -99,6 +99,11 @@ extern const tele_op_t op_TO_TR_P_DIV;
 extern const tele_op_t op_TO_TR_P_MUTE;
 extern const tele_op_t op_TO_TR_P_MUL;
 
+extern const tele_op_t op_TO_ENV;
+
+extern const tele_op_t op_TO_CV_CALIB;
+extern const tele_op_t op_TO_CV_RESET;
+
 
 // TXi Operators
 extern const tele_op_t op_TI_PARAM;
@@ -130,10 +135,13 @@ extern const tele_op_t op_TI_PRM_MAP;
 extern const tele_op_t op_TI_PRM_INIT;
 
 // helpers
+void SendIt(uint8_t address, uint8_t command, uint8_t port, int16_t value,
+            bool set);
 void TXSend(uint8_t model, uint8_t command, uint8_t output, int16_t value,
             bool set);
 void TXCmd(uint8_t model, uint8_t command, uint8_t output);
 void TXSet(uint8_t model, uint8_t command, command_state_t *cs);
+void ReceiveIt(uint8_t address, uint8_t port, command_state_t *cs);
 void TXDeviceSet(uint8_t model, uint8_t command, command_state_t *cs);
 void TXReceive(uint8_t model, command_state_t *cs, uint8_t mode, bool shift);
 uint8_t DeviceToOutput(int16_t device);
@@ -194,7 +202,7 @@ void PRMInit(uint8_t input);
 #define TO_M_COUNT 0x1E
 
 #define TO_KILL 0x20
-#define TO_RESET 0x21
+// #define TO_RESET 0x21
 #define TO_TR_INIT 0x22
 #define TO_CV_INIT 0x23
 #define TO_INIT 0x24
@@ -249,6 +257,11 @@ void PRMInit(uint8_t input);
 #define TO_ENV_EOR 0x6A
 #define TO_ENV_EOC 0x6B
 #define TO_ENV_LOOP 0x6C
+
+#define TO_ENV 0x6D
+
+#define TO_CV_CALIB 0x6E
+#define TO_CV_RESET 0x6F
 
 // TELEXi
 

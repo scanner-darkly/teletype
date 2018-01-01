@@ -64,12 +64,12 @@ void ss_pattern_init(scene_state_t *ss, size_t pattern_no) {
 void ss_grid_init(scene_state_t *ss) {
     ss->grid.rotate = 0;
     ss->grid.dim = 0;
-    
+
     ss->grid.current_group = 0;
     ss->grid.latest_group = 0;
     ss->grid.latest_button = 0;
     ss->grid.latest_fader = 0;
-    
+
     for (u8 i = 0; i < GRID_MAX_DIMENSION; i++)
         for (u8 j = 0; j < GRID_MAX_DIMENSION; j++)
             ss->grid.leds[i][j] = LED_OFF;
@@ -80,7 +80,7 @@ void ss_grid_init(scene_state_t *ss) {
         ss->grid.group[i].fader_min = 0;
         ss->grid.group[i].fader_max = 16383;
     }
-    
+
     for (u16 i = 0; i < GRID_BUTTON_COUNT; i++) {
         ss_grid_common_init(&(ss->grid.button[i].common));
         ss->grid.button[i].latch = 0;
@@ -92,13 +92,13 @@ void ss_grid_init(scene_state_t *ss) {
         ss->grid.fader[i].dir = 0;
         ss->grid.fader[i].value = 0;
     }
-    
+
     for (u8 i = 0; i < GRID_XYPAD_COUNT; i++) {
         ss_grid_common_init(&(ss->grid.xypad[i].common));
         ss->grid.xypad[i].value_x = 0;
         ss->grid.xypad[i].value_y = 0;
     }
-    
+
     ss->grid.grid_dirty = ss->grid.scr_dirty = true;
 }
 

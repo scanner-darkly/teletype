@@ -1,0 +1,36 @@
+["SC.TR"]
+prototype = "SC.TR x y"
+short = "Set trigger output for the ER-301 virtual output x to y (0-1)"
+
+["SC.TR.POL"]
+prototype = "SC.TR.POL x y"
+short = "Set polarity of trigger for the ER-301 virtual output x to y (0-1)"
+
+["SC.TR.TIME"]
+prototype = "SC.TR.TIME x y"
+short = "Set the pulse time for the ER-301 virtual trigger `x` to `y` in ms"
+
+["SC.TR.TOG"]
+prototype = "SC.TR.TOG x"
+short = "Flip the state for the ER-301 virtual trigger output `x`"
+
+["SC.TR.PULSE"]
+prototype = "SC.TR.PULSE x"
+aliases = ["SC.TR.P"]
+short = "Pulse the ER-301 virtual trigger output `x`"
+
+["SC.CV"]
+prototype = "SC.CV x y"
+short = "CV target value for the ER-301 virtual output `x` to value `y`"
+
+["SC.CV.OFF"]
+prototype = "SC.CV.OFF x y"
+short = "CV offset added to the ER-301 virtual output `x`"
+
+["SC.CV.SET"]
+prototype = "SC.CV.SET x"
+short = "Set CV value for the ER-301 virtual output `x`"
+
+["SC.CV.SLEW"]
+prototype = "SC.CV.SLEW x y"
+short = "Set the CV slew time for the ER-301 virtual output `x` in ms"

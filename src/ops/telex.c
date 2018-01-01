@@ -173,6 +173,14 @@ static void op_TO_TR_INIT_get(const void *data, scene_state_t *ss,
 static void op_TO_INIT_get(const void *data, scene_state_t *ss,
                            exec_state_t *es, command_state_t *cs);
 
+static void op_TO_ENV_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                          command_state_t *cs);
+
+static void op_TO_CV_CALIB_get(const void *data, scene_state_t *ss,
+                               exec_state_t *es, command_state_t *cs);
+static void op_TO_CV_RESET_get(const void *data, scene_state_t *ss,
+                               exec_state_t *es, command_state_t *cs);
+
 // TXi Methods
 static void op_TI_PARAM_get(const void *data, scene_state_t *ss,
                             exec_state_t *es, command_state_t *cs);
@@ -303,6 +311,11 @@ const tele_op_t op_TO_CV_INIT         = MAKE_GET_OP(TO.CV.INIT          , op_TO_
 const tele_op_t op_TO_TR_INIT         = MAKE_GET_OP(TO.TR.INIT          , op_TO_TR_INIT_get         , 1, false);
 const tele_op_t op_TO_INIT            = MAKE_GET_OP(TO.INIT             , op_TO_INIT_get            , 1, false);
 
+const tele_op_t op_TO_ENV             = MAKE_GET_OP(TO.ENV              , op_TO_ENV_get             , 2, false);
+
+const tele_op_t op_TO_CV_CALIB        = MAKE_GET_OP(TO.CV.CALIB         , op_TO_CV_CALIB_get        , 1, false);
+const tele_op_t op_TO_CV_RESET        = MAKE_GET_OP(TO.CV.RESET         , op_TO_CV_RESET_get        , 1, false);
+
 // TXo Ailiases
 const tele_op_t op_TO_TR_P            = MAKE_ALIAS_OP(TO.TR.P           , op_TO_TR_PULSE_get        , NULL, 1, false);
 const tele_op_t op_TO_TR_P_DIV        = MAKE_ALIAS_OP(TO.TR.P.DIV       , op_TO_TR_PULSE_DIV_get    , NULL, 2, false);
@@ -341,15 +354,9 @@ const tele_op_t op_TI_PRM_INIT        = MAKE_ALIAS_OP(TI.PRM.INIT       , op_TI_
 // clang-format on
 
 // telex helpers
-void TXSend(uint8_t model, uint8_t command, uint8_t output, int16_t value,
+void SendIt(uint8_t address, uint8_t command, uint8_t port, int16_t value,
             bool set) {
-    // zero-index the output
-    output -= 1;
-    // convert the output to the device and the port
-    uint8_t port = output & 3;
-    uint8_t device = output >> 2;
-    uint8_t address = model + device;
-    // init and fill the buffer	(make the buffer smaller if we are not sending a
+    // init and fill the buffer (make the buffer smaller if we are not sending a
     // payload)
     uint8_t buffer[set ? 4 : 2];
     buffer[0] = command;
@@ -360,6 +367,18 @@ void TXSend(uint8_t model, uint8_t command, uint8_t output, int16_t value,
         buffer[3] = temp & 0xff;
     }
     tele_ii_tx(address, buffer, set ? 4 : 2);
+}
+
+void TXSend(uint8_t model, uint8_t command, uint8_t output, int16_t value,
+            bool set) {
+    // zero-index the output
+    output -= 1;
+    // convert the output to the device and the port
+    uint8_t port = output & 3;
+    uint8_t device = output >> 2;
+    uint8_t address = model + device;
+    // put the package in the i2c mail
+    SendIt(address, command, port, value, set);
 }
 void TXCmd(uint8_t model, uint8_t command, uint8_t output) {
     TXSend(model, command, output, 0, false);
@@ -374,16 +393,7 @@ void TXDeviceSet(uint8_t model, uint8_t command, command_state_t *cs) {
     int16_t value = cs_pop(cs);
     TXSend(model, command, output, value, true);
 }
-void TXReceive(uint8_t model, command_state_t *cs, uint8_t mode, bool shift) {
-    // zero-index the output
-    uint8_t input = cs_pop(cs) - 1;
-    // send the port, device and address
-    uint8_t port = input & 3;
-    uint8_t device = input >> 2;
-    uint8_t address = model + device;
-    // inputs are numbered 0-7 for each device - shift is for the second half
-    // mode pushes it up so it can read quantized values and note numbers
-    port += (shift ? 4 : 0) + (mode << 3);
+void ReceiveIt(uint8_t address, uint8_t port, command_state_t *cs) {
     // tell the device what value you are going to query
     uint8_t buffer[2];
     buffer[0] = port;
@@ -394,6 +404,19 @@ void TXReceive(uint8_t model, command_state_t *cs, uint8_t mode, bool shift) {
     tele_ii_rx(address, buffer, 2);
     int16_t value = (buffer[0] << 8) + buffer[1];
     cs_push(cs, value);
+}
+void TXReceive(uint8_t model, command_state_t *cs, uint8_t mode, bool shift) {
+    // zero-index the output
+    uint8_t input = cs_pop(cs) - 1;
+    // send the port, device and address
+    uint8_t port = input & 3;
+    uint8_t device = input >> 2;
+    uint8_t address = model + device;
+    // inputs are numbered 0-7 for each device - shift is for the second half
+    // mode pushes it up so it can read quantized values and note numbers
+    port += (shift ? 4 : 0) + (mode << 3);
+    // summon the package from the i2c mail
+    ReceiveIt(address, port, cs);
 }
 uint8_t DeviceToOutput(int16_t device) {
     return ((device - 1) * 4) + 1;
@@ -755,6 +778,20 @@ static void op_TO_TR_INIT_get(const void *NOTUSED(data), scene_state_t *ss,
 static void op_TO_INIT_get(const void *NOTUSED(data), scene_state_t *ss,
                            exec_state_t *NOTUSED(es), command_state_t *cs) {
     TXCmd(TO, TO_INIT, DeviceToOutput(cs_pop(cs)));
+}
+
+
+static void op_TO_ENV_get(const void *NOTUSED(data), scene_state_t *ss,
+                          exec_state_t *NOTUSED(es), command_state_t *cs) {
+    TXSet(TO, TO_ENV, cs);
+}
+static void op_TO_CV_CALIB_get(const void *NOTUSED(data), scene_state_t *ss,
+                               exec_state_t *NOTUSED(es), command_state_t *cs) {
+    TXCmd(TO, TO_CV_CALIB, cs_pop(cs));
+}
+static void op_TO_CV_RESET_get(const void *NOTUSED(data), scene_state_t *ss,
+                               exec_state_t *NOTUSED(es), command_state_t *cs) {
+    TXCmd(TO, TO_CV_RESET, cs_pop(cs));
 }
 
 // TXi

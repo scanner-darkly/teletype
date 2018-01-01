@@ -658,3 +658,85 @@ static void op_PN_POP_get(const void *NOTUSED(data), scene_state_t *ss,
 // Make ops
 const tele_op_t op_P_POP = MAKE_GET_OP(P.POP, op_P_POP_get, 0, true);
 const tele_op_t op_PN_POP = MAKE_GET_OP(PN.POP, op_PN_POP_get, 1, true);
+
+
+////////////////////////////////////////////////////////////////////////////////
+// P.MIN ///////////////////////////////////////////////////////////////////////
+
+// Get
+static int16_t p_min_get(scene_state_t *ss, int16_t pn) {
+    pn = normalise_pn(pn);
+
+    int16_t start = ss_get_pattern_start(ss, pn);
+    int16_t end = ss_get_pattern_end(ss, pn);
+
+    int16_t pos = start;
+    int16_t val = ss_get_pattern_val(ss, pn, pos);
+    int16_t temp = 0;
+
+    for (int16_t i = start + 1; i <= end; i++) {
+        temp = ss_get_pattern_val(ss, pn, i);
+        if (temp < val) {
+            pos = i;
+            val = temp;
+        }
+    }
+
+    return pos;
+}
+
+static void op_P_MIN_get(const void *NOTUSED(data), scene_state_t *ss,
+                         exec_state_t *NOTUSED(es), command_state_t *cs) {
+    cs_push(cs, p_min_get(ss, ss->variables.p_n));
+}
+
+static void op_PN_MIN_get(const void *NOTUSED(data), scene_state_t *ss,
+                          exec_state_t *NOTUSED(es), command_state_t *cs) {
+    int16_t pn = cs_pop(cs);
+    cs_push(cs, p_min_get(ss, pn));
+}
+
+// Make ops
+const tele_op_t op_P_MIN = MAKE_GET_OP(P.MIN, op_P_MIN_get, 0, true);
+const tele_op_t op_PN_MIN = MAKE_GET_OP(PN.MIN, op_PN_MIN_get, 1, true);
+
+
+////////////////////////////////////////////////////////////////////////////////
+// P.MAX ///////////////////////////////////////////////////////////////////////
+
+// Get
+static int16_t p_max_get(scene_state_t *ss, int16_t pn) {
+    pn = normalise_pn(pn);
+
+    int16_t start = ss_get_pattern_start(ss, pn);
+    int16_t end = ss_get_pattern_end(ss, pn);
+
+    int16_t pos = start;
+    int16_t val = ss_get_pattern_val(ss, pn, pos);
+    int16_t temp = 0;
+
+    for (int16_t i = start + 1; i <= end; i++) {
+        temp = ss_get_pattern_val(ss, pn, i);
+        if (temp > val) {
+            pos = i;
+            val = temp;
+        }
+    }
+
+    return pos;
+}
+
+static void op_P_MAX_get(const void *NOTUSED(data), scene_state_t *ss,
+                         exec_state_t *NOTUSED(es), command_state_t *cs) {
+    cs_push(cs, p_max_get(ss, ss->variables.p_n));
+}
+
+static void op_PN_MAX_get(const void *NOTUSED(data), scene_state_t *ss,
+                          exec_state_t *NOTUSED(es), command_state_t *cs) {
+    int16_t pn = cs_pop(cs);
+    cs_push(cs, p_max_get(ss, pn));
+}
+
+// Make ops
+const tele_op_t op_P_MAX = MAKE_GET_OP(P.MAX, op_P_MAX_get, 0, true);
+const tele_op_t op_PN_MAX = MAKE_GET_OP(PN.MAX, op_PN_MAX_get, 1, true);
