@@ -60,12 +60,14 @@
 scene_state_t scene_state;
 char scene_text[SCENE_TEXT_LINES][SCENE_TEXT_CHARS];
 uint8_t preset_select;
-region line[8] = {
-    {.w = 128, .h = 8, .x = 0, .y = 0 },  {.w = 128, .h = 8, .x = 0, .y = 8 },
-    {.w = 128, .h = 8, .x = 0, .y = 16 }, {.w = 128, .h = 8, .x = 0, .y = 24 },
-    {.w = 128, .h = 8, .x = 0, .y = 32 }, {.w = 128, .h = 8, .x = 0, .y = 40 },
-    {.w = 128, .h = 8, .x = 0, .y = 48 }, {.w = 128, .h = 8, .x = 0, .y = 56 }
-};
+region line[8] = { { .w = 128, .h = 8, .x = 0, .y = 0 },
+                   { .w = 128, .h = 8, .x = 0, .y = 8 },
+                   { .w = 128, .h = 8, .x = 0, .y = 16 },
+                   { .w = 128, .h = 8, .x = 0, .y = 24 },
+                   { .w = 128, .h = 8, .x = 0, .y = 32 },
+                   { .w = 128, .h = 8, .x = 0, .y = 40 },
+                   { .w = 128, .h = 8, .x = 0, .y = 48 },
+                   { .w = 128, .h = 8, .x = 0, .y = 56 } };
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -93,15 +95,16 @@ static uint8_t mod_key = 0, hold_key, hold_key_count = 0;
 static uint64_t last_in_tick = 0;
 
 // timers
-static softTimer_t clockTimer = {.next = NULL, .prev = NULL };
-static softTimer_t refreshTimer = {.next = NULL, .prev = NULL };
-static softTimer_t keyTimer = {.next = NULL, .prev = NULL };
-static softTimer_t cvTimer = {.next = NULL, .prev = NULL };
-static softTimer_t adcTimer = {.next = NULL, .prev = NULL };
-static softTimer_t hidTimer = {.next = NULL, .prev = NULL };
-static softTimer_t metroTimer = {.next = NULL, .prev = NULL };
+static softTimer_t clockTimer = { .next = NULL, .prev = NULL };
+static softTimer_t refreshTimer = { .next = NULL, .prev = NULL };
+static softTimer_t keyTimer = { .next = NULL, .prev = NULL };
+static softTimer_t cvTimer = { .next = NULL, .prev = NULL };
+static softTimer_t adcTimer = { .next = NULL, .prev = NULL };
+static softTimer_t hidTimer = { .next = NULL, .prev = NULL };
+static softTimer_t metroTimer = { .next = NULL, .prev = NULL };
 static softTimer_t monomePollTimer = {.next = NULL, .prev = NULL };
 static softTimer_t monomeRefreshTimer = {.next = NULL, .prev = NULL };
+static softTimer_t gridFaderTimer = { .next = NULL, .prev = NULL };
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -117,6 +120,7 @@ static void hidTimer_callback(void* o);
 static void metroTimer_callback(void* o);
 static void monome_poll_timer_callback(void* obj);
 static void monome_refresh_timer_callback(void* obj);
+static void grid_fader_timer_callback(void* obj);
 
 // event handler prototypes
 static void handler_None(int32_t data);
@@ -139,8 +143,7 @@ static void assign_msc_event_handlers(void);
 static void check_events(void);
 
 // key handling
-static void process_keypress(uint8_t key, uint8_t mod_key, bool is_held_key,
-                             bool is_release);
+static void process_keypress(uint8_t key, uint8_t mod_key, bool is_held_key, bool is_release);
 static bool process_global_keys(uint8_t key, uint8_t mod_key, bool is_held_key);
 
 // start/stop monome polling/refresh timers
@@ -202,32 +205,32 @@ void cvTimer_callback(void* o) {
 }
 
 void clockTimer_callback(void* o) {
-    event_t e = {.type = kEventTimer, .data = 0 };
+    event_t e = { .type = kEventTimer, .data = 0 };
     event_post(&e);
 }
 
 void refreshTimer_callback(void* o) {
-    event_t e = {.type = kEventScreenRefresh, .data = 0 };
+    event_t e = { .type = kEventScreenRefresh, .data = 0 };
     event_post(&e);
 }
 
 void keyTimer_callback(void* o) {
-    event_t e = {.type = kEventKeyTimer, .data = 0 };
+    event_t e = { .type = kEventKeyTimer, .data = 0 };
     event_post(&e);
 }
 
 void adcTimer_callback(void* o) {
-    event_t e = {.type = kEventPollADC, .data = 0 };
+    event_t e = { .type = kEventPollADC, .data = 0 };
     event_post(&e);
 }
 
 void hidTimer_callback(void* o) {
-    event_t e = {.type = kEventHidTimer, .data = 0 };
+    event_t e = { .type = kEventHidTimer, .data = 0 };
     event_post(&e);
 }
 
 void metroTimer_callback(void* o) {
-    event_t e = {.type = kEventAppCustom, .data = 0 };
+    event_t e = { .type = kEventAppCustom, .data = 0 };
     event_post(&e);
 }
 
@@ -259,6 +262,9 @@ void timers_unset_monome(void) {
     timer_remove(&monomeRefreshTimer);
 }
 
+void grid_fader_timer_callback(void* o) {
+    grid_process_fader_slew(&scene_state);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // event handlers
@@ -435,7 +441,7 @@ static void handler_MonomeRefresh(s32 data) {
 static void handler_MonomeGridKey(s32 data) {
     u8 x, y, z;
     monome_grid_key_parse_event_data(data, &x, &y, &z);
-    grid_process_key(&scene_state, x, y, z);
+    grid_process_key(&scene_state, x, y, z, 0);
 }
 
 
@@ -468,7 +474,7 @@ void assign_main_event_handlers() {
     app_event_handlers[kEventMonomeDisconnect] = &handler_None;
     app_event_handlers[kEventMonomePoll] = &handler_MonomePoll;
     app_event_handlers[kEventMonomeRefresh] = &handler_MonomeRefresh;
-    app_event_handlers[kEventMonomeGridKey] = &handler_MonomeGridKey;
+    app_event_handlers[kEventMonomeGridKey] = &handler_MonomeGridKey;    
 }
 
 static void assign_msc_event_handlers(void) {
@@ -533,23 +539,20 @@ void set_last_mode() {
 ////////////////////////////////////////////////////////////////////////////////
 // key handling
 
-void process_keypress(uint8_t key, uint8_t mod_key, bool is_held_key,
-                      bool is_release) {
+void process_keypress(uint8_t key, uint8_t mod_key, bool is_held_key, bool is_release) {
     // release is a special case for live mode
     if (is_release) {
-        if (mode == M_LIVE)
+        if (mode == M_LIVE) 
             process_live_keys(key, mod_key, is_held_key, true, &scene_state);
         return;
     }
-
+    
     // first try global keys
     if (process_global_keys(key, mod_key, is_held_key)) return;
 
     switch (mode) {
         case M_EDIT: process_edit_keys(key, mod_key, is_held_key); break;
-        case M_LIVE:
-            process_live_keys(key, mod_key, is_held_key, false, &scene_state);
-            break;
+        case M_LIVE: process_live_keys(key, mod_key, is_held_key, false, &scene_state); break;
         case M_PATTERN: process_pattern_keys(key, mod_key, is_held_key); break;
         case M_PRESET_W:
             process_preset_w_keys(key, mod_key, is_held_key);
@@ -773,8 +776,8 @@ bool tele_get_input_state(uint8_t n) {
     return gpio_get_pin_value(A00 + n) > 0;
 }
 
-void grid_key_press(uint8_t x, int8_t y, int8_t z) {
-    grid_process_key(&scene_state, x, y, z);
+void grid_key_press(uint8_t x, uint8_t y, uint8_t z) {
+    grid_process_key(&scene_state, x, y, z, 1);
 }
 
 
@@ -829,6 +832,7 @@ int main(void) {
     timer_add(&keyTimer, 71, &keyTimer_callback, NULL);
     timer_add(&adcTimer, 61, &adcTimer_callback, NULL);
     timer_add(&refreshTimer, 63, &refreshTimer_callback, NULL);
+    timer_add(&gridFaderTimer, 25, &grid_fader_timer_callback, NULL);
 
     // manually call tele_metro_updated to sync metro to scene_state
     metro_timer_enabled = false;

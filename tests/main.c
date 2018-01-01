@@ -29,7 +29,7 @@ void tele_mute() {}
 bool tele_get_input_state(uint8_t n) {
     return false;
 }
-void grid_key_press(uint8_t x, int8_t y, int8_t z) {}
+void grid_key_press(uint8_t x, uint8_t y, uint8_t z) {}
 
 GREATEST_MAIN_DEFS();
 

@@ -32,6 +32,12 @@
 #define LED_DIM -1
 #define LED_BRI -2
 #define LED_OFF -3
+#define FADER_H_BAR 0
+#define FADER_V_BAR 1
+#define FADER_H_DOT 2
+#define FADER_V_DOT 3
+#define FADER_H_FINE 4
+#define FADER_V_FINE 5
 
 #define METRO_MIN_MS 25
 #define METRO_MIN_UNSUPPORTED_MS 2
@@ -108,12 +114,12 @@ typedef struct {
     int16_t last_time;
 } scene_script_t;
 
-typedef struct {
+ typedef struct {
     u8 enabled;
     u8 group;
     u8 x, y;
     u8 w, h;
-    u8 background;
+    u8 level;
     s8 script;
 } grid_common_t;
 
@@ -132,7 +138,7 @@ typedef struct {
 
 typedef struct {
     grid_common_t common;
-    u8 dir;  // 0 - horiz 1 - vert
+    u8 type;
     u8 value;
 } grid_fader_t;
 
@@ -145,7 +151,7 @@ typedef struct {
 typedef struct {
     u8 grid_dirty;
     u8 scr_dirty;
-
+    
     u8 rotate;
     u8 dim;
 
@@ -153,10 +159,10 @@ typedef struct {
     u8 latest_group;
     u8 latest_button;
     u8 latest_fader;
-
+    
     s8 leds[GRID_MAX_DIMENSION][GRID_MAX_DIMENSION];
     grid_group_t group[GRID_GROUP_COUNT];
-
+    
     grid_button_t button[GRID_BUTTON_COUNT];
     grid_fader_t fader[GRID_FADER_COUNT];
     grid_xypad_t xypad[GRID_XYPAD_COUNT];
@@ -277,7 +283,9 @@ typedef struct {
     int16_t top;
 } command_state_stack_t;
 
-typedef struct { command_state_stack_t stack; } command_state_t;
+typedef struct {
+    command_state_stack_t stack;
+} command_state_t;
 
 extern void cs_init(command_state_t *cs);
 extern int16_t cs_stack_size(command_state_t *cs);
