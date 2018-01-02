@@ -95,6 +95,10 @@
         "PN.PUSH"     => { MATCH_OP(E_OP_PN_PUSH); };
         "P.POP"       => { MATCH_OP(E_OP_P_POP); };
         "PN.POP"      => { MATCH_OP(E_OP_PN_POP); };
+        "P.MIN"       => { MATCH_OP(E_OP_P_MIN); };
+        "PN.MIN"      => { MATCH_OP(E_OP_PN_MIN); };
+        "P.MAX"       => { MATCH_OP(E_OP_P_MAX); };
+        "PN.MAX"      => { MATCH_OP(E_OP_PN_MAX); };
 
         # queue
         "Q"           => { MATCH_OP(E_OP_Q); };
@@ -383,7 +387,11 @@
 
         "TO.ENV.EOR"       => { MATCH_OP(E_OP_TO_ENV_EOR); };
         "TO.ENV.EOC"       => { MATCH_OP(E_OP_TO_ENV_EOC); };
-        "TO.ENV.LOOP"       => { MATCH_OP(E_OP_TO_ENV_LOOP); };
+        "TO.ENV.LOOP"      => { MATCH_OP(E_OP_TO_ENV_LOOP); };
+
+        "TO.ENV"           => { MATCH_OP(E_OP_TO_ENV); };
+        "TO.CV.CALIB"      => { MATCH_OP(E_OP_TO_CV_CALIB); };
+        "TO.CV.RESET"      => { MATCH_OP(E_OP_TO_CV_RESET); };
 
         "TI.PARAM"         => { MATCH_OP(E_OP_TI_PARAM); };
         "TI.PARAM.QT"      => { MATCH_OP(E_OP_TI_PARAM_QT); };
@@ -410,6 +418,24 @@
         "TI.PRM.SCALE"     => { MATCH_OP(E_OP_TI_PRM_SCALE); };
         "TI.PRM.MAP"       => { MATCH_OP(E_OP_TI_PRM_MAP); };
         "TI.PRM.INIT"      => { MATCH_OP(E_OP_TI_PRM_INIT); };
+
+        # fader
+        "FADER"            => { MATCH_OP(E_OP_FADER); };
+        "FB"               => { MATCH_OP(E_OP_FB); };
+
+        # ER301
+        "SC.TR"            => { MATCH_OP(E_OP_SC_TR); };
+        "SC.TR.TOG"        => { MATCH_OP(E_OP_SC_TR_TOG); };
+        "SC.TR.PULSE"      => { MATCH_OP(E_OP_SC_TR_PULSE); };
+        "SC.TR.TIME"       => { MATCH_OP(E_OP_SC_TR_TIME); };
+        "SC.TR.POL"        => { MATCH_OP(E_OP_SC_TR_POL); };
+
+        "SC.TR.P"          => { MATCH_OP(E_OP_SC_TR_P); };
+
+        "SC.CV"            => { MATCH_OP(E_OP_SC_CV); };
+        "SC.CV.SLEW"       => { MATCH_OP(E_OP_SC_CV_SLEW); };
+        "SC.CV.SET"        => { MATCH_OP(E_OP_SC_CV_SET); };
+        "SC.CV.OFF"        => { MATCH_OP(E_OP_SC_CV_OFF); };
 
         # grid
         "G.RST"            => { MATCH_OP(E_OP_G_RST); };

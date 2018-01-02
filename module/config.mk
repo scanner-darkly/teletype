@@ -87,6 +87,8 @@ CSRCS = \
 	../src/ops/controlflow.c				\
 	../src/ops/delay.c					\
 	../src/ops/earthsea.c					\
+	../src/ops/er301.c					\
+	../src/ops/fader.c					\
 	../src/ops/grid_ops.c					\
 	../src/ops/hardware.c					\
 	../src/ops/justfriends.c				\

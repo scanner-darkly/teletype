@@ -184,3 +184,25 @@ short = "return and remove the value from the end of the working pattern (like a
 ["PN.POP"]
 prototype = "PN.POP x"
 short = "return and remove the value from the end of pattern `x` (like a stack), destructive to loop length"
+
+
+["P.MIN"]
+prototype = "P.MIN"
+short = "find the first minimum value in the pattern between the START and END for the working pattern and return its index"
+
+["PN.MIN"]
+prototype = "PN.MIN x"
+short = "find the first minimum value in the pattern between the START and END for pattern `x` and return its index"
+
+
+["P.MAX"]
+prototype = "P.MAX"
+short = "find the first maximum value in the pattern between the START and END for the working pattern and return its index"
+
+["PN.MAX"]
+prototype = "PN.MAX x"
+short = "find the first maximum value in the pattern between the START and END for pattern `x` and return its index"
+
+
+
+

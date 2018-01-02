@@ -78,7 +78,7 @@ void flash_read(uint8_t preset_no, scene_state_t *scene,
     memcpy(ss_patterns_ptr(scene), &f.scenes[preset_no].patterns,
            ss_patterns_size());
     memcpy(&grid_data, &f.scenes[preset_no].grid_data, sizeof(grid_data_t));
-    unpack_grid(scene);           
+    unpack_grid(scene);
     memcpy(text, &f.scenes[preset_no].text,
            SCENE_TEXT_LINES * SCENE_TEXT_CHARS);
 }
@@ -109,18 +109,19 @@ static void pack_grid(scene_state_t *scene) {
     for (uint16_t i = 0; i < GRID_FADER_COUNT; i += 2) {
         byte = i >> 1;
         if (byte >= FADER_STATE_SIZE) break;
-        grid_data.fader_states[byte] = (scene->grid.fader[i].value << 4) + 
-            scene->grid.fader[i+1].value;
+        grid_data.fader_states[byte] =
+            (scene->grid.fader[i].value << 4) + scene->grid.fader[i + 1].value;
     }
 }
 
 static void unpack_grid(scene_state_t *scene) {
     for (uint16_t i = 0; i < GRID_BUTTON_COUNT; i++) {
-        scene->grid.button[i].state = 
+        scene->grid.button[i].state =
             0 != (grid_data.button_states[i >> 3] & (1 << (i & 7)));
     }
     for (uint16_t i = 0; i < GRID_FADER_COUNT; i += 2) {
         scene->grid.fader[i].value = grid_data.fader_states[i >> 1] >> 4;
-        scene->grid.fader[i+1].value = grid_data.fader_states[i >> 1] & 0b1111;
+        scene->grid.fader[i + 1].value =
+            grid_data.fader_states[i >> 1] & 0b1111;
     }
-} 
+}

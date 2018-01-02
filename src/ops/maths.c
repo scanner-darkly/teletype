@@ -419,7 +419,7 @@ static void op_JI_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
             quotient = d / prime[p];
         }
     }
-    result = ( result + 8 ) >> 4; // round & scale
+    result = (result + 8) >> 4;                 // round & scale
     while (result >= 1638) { result -= 1638; }  // normalize `V 0` to `V 1`
     while (result < 0) { result += 1638; }
     cs_push(cs, result);

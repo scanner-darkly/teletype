@@ -247,6 +247,33 @@ If a curve is too small for the range being covered, values above the range will
 
 """
 
+["TO.CV.CALIB"]
+prototype = "TO.CV.CALIB x"
+short = "Locks the current offset (`CV.OFF`) as a calibration offset and saves it to persist between power cycles for output `x`."
+description = """
+
+To calibrate your TXo outputs, follow these steps. Before you start, let your expander warm up for a few minutes. It won't take long - but you want to make sure that it is calibrated at a more representative temperature.
+
+Then, first adjust your offset (CV.OFF) until the output is at zero volts (0). For example:
+
+```
+CV.OFF 1 8
+```
+
+Once that output measures at zero volts, you want to lock it in as the calibration by calling the following operator:
+
+```
+CV.CALIB 1
+```
+
+You will find that the offset is now zero, but the output is at the value that you targeted during your prior adjustment. To reset to normal (and forget this calibration offset), use the `TO.CV.RESET` command.
+
+"""
+
+["TO.CV.RESET"]
+prototype = "TO.CV.RESET x"
+short = "Clears the calibration offset for output `x`."
+
 ["TO.OSC"]
 prototype = "TO.OSC x y"
 short = "targets oscillation for CV output `x` to `y` with the portamento rate determined by the `TO.OSC.SLEW` value; `y` is 1v/oct translated from the standard range (1-16384); a value of `0` disables oscillation; `CV` amplitude is used as the peak for oscillation and needs to be `> 0` for it to be perceivable"
@@ -439,6 +466,10 @@ This will initialize the `CV 1` output to have an envelope that will ramp to `+8
 
 To return your `CV` output to normal function, either deactivate the envelope (`TO.ENV.ACT 1 0`) or reinitialize the output (`TO.CV.INIT 1`).
 """
+
+["TO.ENV"]
+prototype = "TO.ENV x y"
+short = "This parameter essentially allows output `x` to act as a gate between the 0 and 1 state. Changing this value from 0 to 1 causes the envelope to trigger the attack phase and hold at the peak CV value; changing this value from 1 to 0 causes the decay stage of the envelope to be triggered."
 
 ["TO.ENV.TRIG"]
 prototype = "TO.ENV.TRIG x"

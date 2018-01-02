@@ -9,6 +9,8 @@
 #include "ops/controlflow.h"
 #include "ops/delay.h"
 #include "ops/earthsea.h"
+#include "ops/er301.h"
+#include "ops/fader.h"
 #include "ops/grid_ops.h"
 #include "ops/hardware.h"
 #include "ops/justfriends.h"
@@ -50,7 +52,7 @@ const tele_op_t *tele_ops[E_OP__LENGTH] = {
     &op_P_START, &op_PN_START, &op_P_END, &op_PN_END, &op_P_I, &op_PN_I,
     &op_P_HERE, &op_PN_HERE, &op_P_NEXT, &op_PN_NEXT, &op_P_PREV, &op_PN_PREV,
     &op_P_INS, &op_PN_INS, &op_P_RM, &op_PN_RM, &op_P_PUSH, &op_PN_PUSH,
-    &op_P_POP, &op_PN_POP,
+    &op_P_POP, &op_PN_POP, &op_P_MIN, &op_PN_MIN, &op_P_MAX, &op_PN_MAX,
 
     // queue
     &op_Q, &op_Q_AVG, &op_Q_N,
@@ -143,6 +145,8 @@ const tele_op_t *tele_ops[E_OP__LENGTH] = {
     &op_TO_ENV_DEC, &op_TO_ENV_DEC_S, &op_TO_ENV_DEC_M, &op_TO_ENV_TRIG,
     &op_TO_ENV_EOR, &op_TO_ENV_EOC, &op_TO_ENV_LOOP,
 
+    &op_TO_ENV, &op_TO_CV_CALIB, &op_TO_CV_RESET,
+
     &op_TI_PARAM, &op_TI_PARAM_QT, &op_TI_PARAM_N, &op_TI_PARAM_SCALE,
     &op_TI_PARAM_MAP, &op_TI_IN, &op_TI_IN_QT, &op_TI_IN_N, &op_TI_IN_SCALE,
     &op_TI_IN_MAP, &op_TI_PARAM_CALIB, &op_TI_IN_CALIB, &op_TI_STORE,
@@ -152,7 +156,14 @@ const tele_op_t *tele_ops[E_OP__LENGTH] = {
 
     &op_TI_PRM, &op_TI_PRM_QT, &op_TI_PRM_N, &op_TI_PRM_SCALE, &op_TI_PRM_MAP,
     &op_TI_PRM_INIT,
-    
+
+    // fader
+    &op_FADER, &op_FB,
+
+    // ER301
+    &op_SC_TR, &op_SC_TR_TOG, &op_SC_TR_PULSE, &op_SC_TR_TIME, &op_SC_TR_POL,
+    &op_SC_CV, &op_SC_CV_SLEW, &op_SC_CV_SET, &op_SC_CV_OFF, &op_SC_TR_P,
+
     // grid
     &op_G_RST, &op_G_CLR, &op_G_ROTATE, &op_G_DIM, &op_G_KEY, &op_G_GRP,
     &op_G_GRP_EN, &op_G_GRP_RST, &op_G_GRP_SW, &op_G_GRP_SC, &op_G_GRPI,
@@ -162,7 +173,7 @@ const tele_op_t *tele_ops[E_OP__LENGTH] = {
     &op_G_BTN_SW, &op_G_BTN_PR, &op_G_GBTN_V, &op_G_GBTN_L, &op_G_FDR,
     &op_G_FDX, &op_G_GFD, &op_G_GFX, &op_G_FDR_EN, &op_G_FDR_V, &op_G_FDR_N,
     &op_G_FDR_L, &op_G_FDR_X, &op_G_FDR_Y, &op_G_FDRI, &op_G_FDRV, &op_G_FDRN,
-    &op_G_FDRL, &op_G_FDRX, &op_G_FDRY, &op_G_FDR_PR, &op_G_GFDR_V, 
+    &op_G_FDRL, &op_G_FDRX, &op_G_FDRY, &op_G_FDR_PR, &op_G_GFDR_V,
     &op_G_GFDR_N, &op_G_GFDR_L, &op_G_GFDR_RN, &op_G_XYP, &op_G_XYP_X,
     &op_G_XYP_Y
 };

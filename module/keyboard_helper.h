@@ -77,7 +77,7 @@ static inline bool match_shift_alt(uint8_t mod, uint8_t key,
 }
 
 static inline bool match_shift_ctrl(uint8_t mod, uint8_t key,
-                                   uint8_t required_key) {
+                                    uint8_t required_key) {
     return mod_only_shift_ctrl(mod) && key == required_key;
 }
 

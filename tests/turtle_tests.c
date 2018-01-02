@@ -34,7 +34,7 @@ static const char *error_message(error_t e) {
 TEST process_helper_state(scene_state_t *ss, size_t n, char *lines[],
                           int16_t answer) {
     count++;
-    process_result_t result = { .has_value = false, .value = 0 };
+    process_result_t result = {.has_value = false, .value = 0 };
     exec_state_t es;
     memset(&es, 0, sizeof(es));
     es_init(&es);
@@ -216,7 +216,7 @@ TEST test_turtle_bounce() {
     char *test10b[4] = { "@BOUNCE 1", "@F 0 0 1 1", "@STEP", "@DIR" };
     CHECK_CALL(process_helper(4, test10b, 180));
 
-    // The following tests reveal the charade that is the length between fences
+// The following tests reveal the charade that is the length between fences
 #if 0 
     char *test10c[4] = { "@BOUNCE 1", "@F 0 0 1 1", "L 1 2: @STEP", "@DIR" };
     CHECK_CALL(process_helper(4, test10c, 0));
