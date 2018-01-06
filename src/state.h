@@ -32,12 +32,17 @@
 #define LED_DIM -1
 #define LED_BRI -2
 #define LED_OFF -3
-#define FADER_H_BAR 0
-#define FADER_V_BAR 1
-#define FADER_H_DOT 2
-#define FADER_V_DOT 3
-#define FADER_H_FINE 4
-#define FADER_V_FINE 5
+// H - horizontal, V - vertical
+// C - coarse, F - fine
+#define FADER_CH_BAR 0
+#define FADER_CV_BAR 1
+#define FADER_CH_DOT 2
+#define FADER_CV_DOT 3
+#define FADER_COARSE FADER_CV_DOT
+#define FADER_FH_BAR 4
+#define FADER_FV_BAR 5
+#define FADER_FH_DOT 6
+#define FADER_FV_DOT 7
 
 #define METRO_MIN_MS 25
 #define METRO_MIN_UNSUPPORTED_MS 2

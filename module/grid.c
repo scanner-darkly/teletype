@@ -211,34 +211,39 @@ void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z, u8 ignore_rotate) {
         }
     }
 
+    u16 value;
     if (z) {
         for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
             if (GFC.enabled && SG.group[GFC.group].enabled && grid_within_area(x, y, &GFC)) {
                 switch (GF.type) {
-                    case FADER_H_BAR:
-                    case FADER_H_DOT:
+                    case FADER_CH_BAR:
+                    case FADER_CH_DOT:
                         GF.value = x - GFC.x;
                         break;
-                    case FADER_V_BAR:
-                    case FADER_V_DOT:
+                    case FADER_CV_BAR:
+                    case FADER_CV_DOT:
                         GF.value = GFC.h + GFC.y - y - 1;
                         break;
-                    case FADER_H_FINE:
+                    case FADER_FH_BAR:
+                    case FADER_FH_DOT:
                         if (x == GFC.x) {
                             if (GF.value) GF.value--;
                         } else if (x == GFC.x + GFC.w - 1) {
                             if (GF.value < GFC.level) GF.value++;
                         } else {
-                            GF.value = ((((x - GFC.x) << 4) + 8) * (GFC.level + 1)) / (GFC.w << 4);
+                            value = ((((x - GFC.x - 1) << 1) + 1) * GFC.level) / (GFC.w - 2);
+                            GF.value = (value >> 1) + (value & 1);
                         }
                         break;
-                    case FADER_V_FINE:
+                    case FADER_FV_BAR:
+                    case FADER_FV_DOT:
                         if (y == GFC.y) {
                             if (GF.value < GFC.level) GF.value++;
                         } else if (y == GFC.y + GFC.h - 1) {
                             if (GF.value) GF.value--;
                         } else {
-                            GF.value = ((((y - GFC.y) << 4) + 8) * (GFC.level + 1)) / (GFC.h << 4);
+                            value = ((((GFC.h + GFC.y - y - 2) << 1) + 1) * GFC.level) / (GFC.h - 2);
+                            GF.value = (value >> 1) + (value & 1);
                         }
                         break;
                 }
@@ -273,7 +278,7 @@ void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z, u8 ignore_rotate) {
     for (u8 i = 0; i < SCRIPT_COUNT; i++)
         if (scripts[i]) run_script(ss, i);
 
-    SG.grid_dirty = SG.scr_dirty = refresh;
+    if (refresh) SG.grid_dirty = SG.scr_dirty = 1;
 }
 
 void grid_process_key_hold_repeat(scene_state_t *ss, u8 _x, u8 _y, u8 ignore_rotate, u8 is_hold) {
@@ -287,7 +292,7 @@ void grid_process_key_hold_repeat(scene_state_t *ss, u8 _x, u8 _y, u8 ignore_rot
     for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
         if (GFC.enabled && SG.group[GFC.group].enabled && grid_within_area(x, y, &GFC)) {
             update = 0;
-            if (GF.type == FADER_H_FINE) {
+            if (GF.type == FADER_FH_BAR || GF.type == FADER_FH_DOT) {
                 if (x == GFC.x) {
                     if (GF.value) GF.value--;
                     update = 1;
@@ -295,7 +300,7 @@ void grid_process_key_hold_repeat(scene_state_t *ss, u8 _x, u8 _y, u8 ignore_rot
                     if (GF.value < GFC.level) GF.value++;
                     update = 1;
                 }
-            } else if (GF.type == FADER_V_FINE) {
+            } else if (GF.type == FADER_FV_BAR || GF.type == FADER_FV_DOT) {
                 if (y == GFC.y) {
                     if (GF.value < GFC.level) GF.value++;
                     update = 1;
@@ -318,7 +323,7 @@ void grid_process_key_hold_repeat(scene_state_t *ss, u8 _x, u8 _y, u8 ignore_rot
     for (u8 i = 0; i < SCRIPT_COUNT; i++)
         if (scripts[i]) run_script(ss, i);
 
-    SG.grid_dirty = SG.scr_dirty = refresh;
+    if (refresh) SG.grid_dirty = SG.scr_dirty = 1;
 }
 
 void hold_repeat_timer_callback(void* o) {
@@ -361,33 +366,57 @@ void grid_refresh(scene_state_t *ss) {
     for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
         if (GFC.enabled && SG.group[GFC.group].enabled) {
             switch (GF.type) {
-                case FADER_H_BAR:
+                case FADER_CH_BAR:
                     grid_fill_area(GFC.x, GFC.y, GF.value + 1, GFC.h, 15);
                     grid_fill_area(GFC.x + GF.value + 1, GFC.y, GFC.w - GF.value - 1, GFC.h, GFC.level);
                     break;
-                case FADER_V_BAR:
+                case FADER_CV_BAR:
                     grid_fill_area(GFC.x, GFC.y, GFC.w, GFC.h - GF.value - 1, GFC.level);
                     grid_fill_area(GFC.x, GFC.y + GFC.h - GF.value - 1, GFC.w, GF.value + 1, 15);
                     break;
-                case FADER_H_DOT:
+                case FADER_CH_DOT:
                     grid_fill_area(GFC.x + GF.value, GFC.y, 1, GFC.h, 15);
                     break;
-                case FADER_V_DOT:
+                case FADER_CV_DOT:
                     grid_fill_area(GFC.x, GFC.y + GFC.h - GF.value - 1, GFC.w, 1, 15);
                     break;
-                case FADER_H_FINE:
-                    fv = ((GFC.w << 4) * GF.value) / (GFC.level + 1);
+                case FADER_FH_BAR:
+                    fv = (((GFC.w - 2) << 4) * GF.value) / GFC.level;
                     ff = fv >> 4;
                     fp = fv & 15;
-                    grid_fill_area(GFC.x, GFC.y, ff, GFC.h, 15);
-                    if (fp) grid_fill_area(GFC.x + ff, GFC.y, 1, GFC.h, fp);
+                    grid_fill_area(GFC.x, GFC.y, ff + 1, GFC.h, 15);
+                    if (fp) grid_fill_area(GFC.x + ff + 1, GFC.y, 1, GFC.h, fp);
+                    grid_fill_area(GFC.x + GFC.w - 1, GFC.y, 1, GFC.h, 15);
                     break;
-                case FADER_V_FINE:
-                    fv = ((GFC.h << 4) * GF.value) / (GFC.level + 1);
+                case FADER_FV_BAR:
+                    fv = (((GFC.h - 2) << 4) * GF.value) / GFC.level;
                     ff = fv >> 4;
                     fp = fv & 15;
-                    grid_fill_area(GFC.x, GFC.y + GFC.h - ff, GFC.w, ff, 15);
-                    if (fp) grid_fill_area(GFC.x, GFC.y + GFC.h - ff - 1, GFC.w, ff, fp);
+                    grid_fill_area(GFC.x, GFC.y + GFC.h - ff - 1, GFC.w, ff + 1, 15);
+                    if (fp) grid_fill_area(GFC.x, GFC.y + GFC.h - ff - 2, GFC.w, 1, fp);
+                    grid_fill_area(GFC.x, GFC.y, GFC.w, 1, 15);
+                    break;
+                case FADER_FH_DOT:
+                    grid_fill_area(GFC.x, GFC.y, 1, GFC.h, 15);
+                    grid_fill_area(GFC.x + GFC.w - 1, GFC.y, 1, GFC.h, 15);
+                    fv = (((GFC.w - 2) << 4) * GF.value) / GFC.level;
+                    ff = fv >> 4;
+                    fp = fv & 15;
+                    if (fp)
+                        grid_fill_area(GFC.x + ff + 1, GFC.y, 1, GFC.h, fp);
+                    else if (ff)
+                        grid_fill_area(GFC.x + ff, GFC.y, 1, GFC.h, 15);
+                    break;
+                case FADER_FV_DOT:
+                    grid_fill_area(GFC.x, GFC.y + GFC.h - 1, GFC.w, 1, 15);
+                    grid_fill_area(GFC.x, GFC.y, GFC.w, 1, 15);
+                    fv = (((GFC.h - 2) << 4) * GF.value) / GFC.level;
+                    ff = fv >> 4;
+                    fp = fv & 15;
+                    if (fp)
+                        grid_fill_area(GFC.x, GFC.y + GFC.h - ff - 2, GFC.w, 1, fp);
+                    else if (ff)
+                        grid_fill_area(GFC.x, GFC.y + GFC.h - ff - 1, GFC.w, 1, 15);
                     break;
             }
         }
@@ -576,33 +605,57 @@ void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8
     for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
         if (GFC.enabled && SG.group[GFC.group].enabled) {
             switch (GF.type) {
-                case FADER_H_BAR:
+                case FADER_CH_BAR:
                     grid_fill_area_scr(GFC.x, GFC.y, GF.value + 1, GFC.h, 15, page);
                     grid_fill_area_scr(GFC.x + GF.value + 1, GFC.y, GFC.w - GF.value - 1, GFC.h, GFC.level, page);
                     break;
-                case FADER_V_BAR:
+                case FADER_CV_BAR:
                     grid_fill_area_scr(GFC.x, GFC.y, GFC.w, GFC.h - GF.value - 1, GFC.level, page);
                     grid_fill_area_scr(GFC.x, GFC.y + GFC.h - GF.value - 1, GFC.w, GF.value + 1, 15, page);
                     break;
-                case FADER_H_DOT:
+                case FADER_CH_DOT:
                     grid_fill_area_scr(GFC.x + GF.value, GFC.y, 1, GFC.h, 15, page);
                     break;
-                case FADER_V_DOT:
+                case FADER_CV_DOT:
                     grid_fill_area_scr(GFC.x, GFC.y + GFC.h - GF.value - 1, GFC.w, 1, 15, page);
                     break;
-                case FADER_H_FINE:
-                    fv = ((GFC.w << 4) * GF.value) / (GFC.level + 1);
+                case FADER_FH_BAR:
+                    fv = (((GFC.w - 2) << 4) * GF.value) / GFC.level;
                     ff = fv >> 4;
                     fp = fv & 15;
-                    grid_fill_area_scr(GFC.x, GFC.y, ff, GFC.h, 15, page);
-                    if (fp) grid_fill_area_scr(GFC.x + ff, GFC.y, 1, GFC.h, fp, page);
+                    grid_fill_area_scr(GFC.x, GFC.y, ff + 1, GFC.h, 15, page);
+                    if (fp) grid_fill_area_scr(GFC.x + ff + 1, GFC.y, 1, GFC.h, fp, page);
+                    grid_fill_area_scr(GFC.x + GFC.w - 1, GFC.y, 1, GFC.h, 15, page);
                     break;
-                case FADER_V_FINE:
-                    fv = ((GFC.h << 4) * GF.value) / (GFC.level + 1);
+                case FADER_FV_BAR:
+                    fv = (((GFC.h - 2) << 4) * GF.value) / GFC.level;
                     ff = fv >> 4;
                     fp = fv & 15;
-                    grid_fill_area_scr(GFC.x, GFC.y + GFC.h - ff, GFC.w, ff, 15, page);
-                    if (fp) grid_fill_area_scr(GFC.x, GFC.y + GFC.h - ff - 1, GFC.w, ff, fp, page);
+                    grid_fill_area_scr(GFC.x, GFC.y + GFC.h - ff - 1, GFC.w, ff + 1, 15, page);
+                    if (fp) grid_fill_area_scr(GFC.x, GFC.y + GFC.h - ff - 2, GFC.w, 1, fp, page);
+                    grid_fill_area_scr(GFC.x, GFC.y, GFC.w, 1, 15, page);
+                    break;
+                case FADER_FH_DOT:
+                    grid_fill_area_scr(GFC.x, GFC.y, 1, GFC.h, 15, page);
+                    grid_fill_area_scr(GFC.x + GFC.w - 1, GFC.y, 1, GFC.h, 15, page);
+                    fv = (((GFC.w - 2) << 4) * GF.value) / GFC.level;
+                    ff = fv >> 4;
+                    fp = fv & 15;
+                    if (fp)
+                        grid_fill_area_scr(GFC.x + ff + 1, GFC.y, 1, GFC.h, fp, page);
+                    else if (ff)
+                        grid_fill_area_scr(GFC.x + ff, GFC.y, 1, GFC.h, 15, page);
+                    break;
+                case FADER_FV_DOT:
+                    grid_fill_area_scr(GFC.x, GFC.y + GFC.h - 1, GFC.w, 1, 15, page);
+                    grid_fill_area_scr(GFC.x, GFC.y, GFC.w, 1, 15, page);
+                    fv = (((GFC.h - 2) << 4) * GF.value) / GFC.level;
+                    ff = fv >> 4;
+                    fp = fv & 15;
+                    if (fp)
+                        grid_fill_area_scr(GFC.x, GFC.y + GFC.h - ff - 2, GFC.w, 1, fp, page);
+                    else if (ff)
+                        grid_fill_area_scr(GFC.x, GFC.y + GFC.h - ff - 1, GFC.w, 1, 15, page);
                     break;
             }
         }

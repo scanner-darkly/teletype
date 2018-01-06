@@ -89,7 +89,7 @@ void ss_grid_init(scene_state_t *ss) {
 
     for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
         ss_grid_common_init(&(ss->grid.fader[i].common));
-        ss->grid.fader[i].type = FADER_H_BAR;
+        ss->grid.fader[i].type = FADER_CH_BAR;
         ss->grid.fader[i].value = 0;
     }
     
