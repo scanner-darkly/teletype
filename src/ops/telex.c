@@ -373,6 +373,9 @@ void TXSend(uint8_t model, uint8_t command, uint8_t output, int16_t value,
             bool set) {
     // zero-index the output
     output -= 1;
+    // return if out of range
+    if (output < 0 || output > 31)
+        return;
     // convert the output to the device and the port
     uint8_t port = output & 3;
     uint8_t device = output >> 2;
@@ -408,6 +411,9 @@ void ReceiveIt(uint8_t address, uint8_t port, command_state_t *cs) {
 void TXReceive(uint8_t model, command_state_t *cs, uint8_t mode, bool shift) {
     // zero-index the output
     uint8_t input = cs_pop(cs) - 1;
+    // return if out of range
+    if (input < 0 || input > 31)
+        return;
     // send the port, device and address
     uint8_t port = input & 3;
     uint8_t device = input >> 2;

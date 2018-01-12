@@ -51,6 +51,9 @@ const tele_op_t op_SC_CV_OFF =
 void ERSend(uint8_t command, uint16_t output, int16_t value, bool set) {
     // zero-index the output
     output -= 1;
+    // return if out of range
+    if (output < 0 || output > 299)
+        return;
     // convert the output to the device and the port
     uint8_t port = output % 100;
     uint8_t device = output / 100;
