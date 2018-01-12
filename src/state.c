@@ -91,6 +91,7 @@ void ss_grid_init(scene_state_t *ss) {
         ss_grid_common_init(&(ss->grid.fader[i].common));
         ss->grid.fader[i].type = FADER_CH_BAR;
         ss->grid.fader[i].value = 0;
+        ss->grid.fader[i].slide = 0;
     }
     
     for (u8 i = 0; i < GRID_XYPAD_COUNT; i++) {

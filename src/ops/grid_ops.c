@@ -232,6 +232,7 @@ static void op_G_RST_get(const void *NOTUSED(data), scene_state_t *ss, exec_stat
         grid_common_init(&(GFC));
         GF.type = FADER_CH_BAR;
         GF.value = 0;
+        GF.slide = 0;
     }
     
     for (u8 i = 0; i < GRID_XYPAD_COUNT; i++) {
@@ -315,6 +316,7 @@ static void op_G_GRP_RST_get(const void *NOTUSED(data), scene_state_t *ss, exec_
             grid_common_init(&(GFC));
             GF.type = FADER_CH_BAR;
             GF.value = 0;
+            GF.slide = 0;
         }
     
     for (u8 i = 0; i < GRID_XYPAD_COUNT; i++)

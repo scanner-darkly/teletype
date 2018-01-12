@@ -6,7 +6,7 @@
 #include "timers.h"
 #include "util.h"
 
-#define GRID_MAX_KEY_PRESSED 5
+#define GRID_MAX_KEY_PRESSED 10
 #define GRID_KEY_HOLD_DELAY 700
 #define GRID_KEY_REPEAT_RATE 40
 
@@ -146,18 +146,17 @@ typedef struct {
     u8 key;
     u8 x;
     u8 y;
-    u8 ignore_rotate;
     scene_state_t *ss;
     softTimer_t timer;
-} hold_repeat_timer;
+} hold_repeat_info;
 
 static u16 size_x = 16, size_y = 8;
 static u8 screen[GRID_MAX_DIMENSION][GRID_MAX_DIMENSION/2];
-static hold_repeat_timer hold_repeat_timers[GRID_MAX_KEY_PRESSED];
+static hold_repeat_info held_keys[GRID_MAX_KEY_PRESSED];
 static u8 timers_uninitialized = 1;
 
 static void hold_repeat_timer_callback(void* o);
-static void grid_process_key_hold_repeat(scene_state_t *ss, u8 _x, u8 _y, u8 ignore_rotate, u8 is_hold);
+static void grid_process_key_hold_repeat(scene_state_t *ss, u8 x, u8 y, u8 is_hold);
 static void grid_screen_refresh_ctrl(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u8 y2);
 static void grid_screen_refresh_led(scene_state_t *ss, u8 full_grid, u8 page, u8 x1, u8 y1, u8 x2, u8 y2);
 static void grid_screen_refresh_info(scene_state_t *ss, u8 page, u8 x1, u8 y1, u8 x2, u8 y2);
@@ -169,33 +168,33 @@ void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z, u8 ignore_rotate) {
     if (timers_uninitialized) {
         timers_uninitialized = 0;
         for (u8 i = 0; i < GRID_MAX_KEY_PRESSED; i++)
-            hold_repeat_timers[i].used = 0;
+            held_keys[i].used = 0;
     }
     
-    u8 key = (_y << 4) | _x;
+    u8 x = SG.rotate && !ignore_rotate ? monome_size_x() - _x - 1 : _x;
+    u8 y = SG.rotate && !ignore_rotate ? monome_size_y() - _y - 1 : _y;
+
+    u8 key = (y << 4) | x;
     if (z) {
         for (u8 i = 0; i < GRID_MAX_KEY_PRESSED; i++)
-            if (!hold_repeat_timers[i].used || hold_repeat_timers[i].key == key) {
-                hold_repeat_timers[i].used = 1;
-                hold_repeat_timers[i].key = key;
-                hold_repeat_timers[i].x = _x;
-                hold_repeat_timers[i].y = _y;
-                hold_repeat_timers[i].ignore_rotate = ignore_rotate;
-                hold_repeat_timers[i].ss = ss;
-                timer_add(&hold_repeat_timers[i].timer, GRID_KEY_HOLD_DELAY,
-                    &hold_repeat_timer_callback, (void *)&hold_repeat_timers[i]);
+            if (!held_keys[i].used || held_keys[i].key == key) {
+                held_keys[i].used = 1;
+                held_keys[i].key = key;
+                held_keys[i].x = x;
+                held_keys[i].y = y;
+                held_keys[i].ss = ss;
+                timer_add(&held_keys[i].timer, GRID_KEY_HOLD_DELAY,
+                    &hold_repeat_timer_callback, (void *)&held_keys[i]);
                 break;
             }
     } else {
         for (u8 i = 0; i < GRID_MAX_KEY_PRESSED; i++)
-            if (hold_repeat_timers[i].key == key) {
-                timer_remove(&hold_repeat_timers[i].timer);
-                hold_repeat_timers[i].used = 0;
+            if (held_keys[i].key == key) {
+                timer_remove(&held_keys[i].timer);
+                held_keys[i].used = 0;
             }
     }
 
-    u8 x = SG.rotate && !ignore_rotate ? monome_size_x() - _x - 1 : _x;
-    u8 y = SG.rotate && !ignore_rotate ? monome_size_y() - _y - 1 : _y;
     u8 refresh = 0;
     u8 scripts[SCRIPT_COUNT];
     for (u8 i = 0; i < SCRIPT_COUNT; i++) scripts[i] = 0;
@@ -212,38 +211,116 @@ void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z, u8 ignore_rotate) {
     }
 
     u16 value;
+    s8 held;
     if (z) {
         for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
             if (GFC.enabled && SG.group[GFC.group].enabled && grid_within_area(x, y, &GFC)) {
+                held = -1;
+                if (GF.type & 1) {
+                    for (u8 j = 0; j < GRID_MAX_KEY_PRESSED; j++)
+                        if (held_keys[j].used && (held_keys[j].y != y) && 
+                            grid_within_area(held_keys[j].x, held_keys[j].y, &GFC)) {
+                            held = j;
+                            break;
+                        }
+                } else {
+                    for (u8 j = 0; j < GRID_MAX_KEY_PRESSED; j++)
+                        if (held_keys[j].used && (held_keys[j].x != x) &&
+                            grid_within_area(held_keys[j].x, held_keys[j].y, &GFC)) {
+                            held = j;
+                            break;
+                        }
+                }
+                
                 switch (GF.type) {
                     case FADER_CH_BAR:
                     case FADER_CH_DOT:
-                        GF.value = x - GFC.x;
+                        if (held == -1) {
+                            GF.slide = 0;
+                            GF.value = x - GFC.x;
+                        } else {
+                            GF.slide = 1;
+                            GF.slide_acc = 0;
+                            GF.slide_end = x - GFC.x;
+                            GF.slide_delta = 16;
+                            GF.slide_dir = GF.slide_end > GF.value;
+                        }
                         break;
                     case FADER_CV_BAR:
                     case FADER_CV_DOT:
-                        GF.value = GFC.h + GFC.y - y - 1;
+                        if (held == -1) {
+                            GF.slide = 0;
+                            GF.value = GFC.h + GFC.y - y - 1;
+                        } else {
+                            GF.slide = 1;
+                            GF.slide_acc = 0;
+                            GF.slide_end = GFC.h + GFC.y - y - 1;
+                            GF.slide_delta = 16;
+                            GF.slide_dir = GF.slide_end > GF.value;
+                        }
                         break;
                     case FADER_FH_BAR:
                     case FADER_FH_DOT:
-                        if (x == GFC.x) {
-                            if (GF.value) GF.value--;
-                        } else if (x == GFC.x + GFC.w - 1) {
-                            if (GF.value < GFC.level) GF.value++;
+                        if (held != -1 && (held_keys[held].x == GFC.x || held_keys[held].x == (GFC.x + GFC.w - 1)))
+                            held = -1;
+                        if (held == -1) {
+                            GF.slide = 0;
+                            if (x == GFC.x) {
+                                if (GF.value) GF.value--;
+                            } else if (x == GFC.x + GFC.w - 1) {
+                                if (GF.value < GFC.level) GF.value++;
+                            } else {
+                                value = ((((x - GFC.x - 1) << 1) + 1) * GFC.level) / (GFC.w - 2);
+                                GF.value = (value >> 1) + (value & 1);
+                            }
                         } else {
-                            value = ((((x - GFC.x - 1) << 1) + 1) * GFC.level) / (GFC.w - 2);
-                            GF.value = (value >> 1) + (value & 1);
+                            GF.slide = 1;
+                            GF.slide_acc = 0;
+                            if (x == GFC.x)
+                                value = 0;
+                            else if (x == (GFC.x + GFC.w - 1))
+                                value = GFC.level;
+                            else {
+                                value = ((((x - GFC.x - 1) << 1) + 1) * GFC.level) / (GFC.w - 2);
+                                value = (value >> 1) + (value & 1);
+                            }
+                            GF.slide_end = value;
+                            value = ((GFC.w - 2) << 4) / GFC.level;
+                            if (value == 0) value = 1;
+                            GF.slide_delta = value;
+                            GF.slide_dir = GF.slide_end > GF.value;
                         }
                         break;
                     case FADER_FV_BAR:
                     case FADER_FV_DOT:
-                        if (y == GFC.y) {
-                            if (GF.value < GFC.level) GF.value++;
-                        } else if (y == GFC.y + GFC.h - 1) {
-                            if (GF.value) GF.value--;
+                        if (held != -1 && (held_keys[held].y == GFC.y || held_keys[held].y == (GFC.y + GFC.h - 1)))
+                            held = -1;
+                        if (held == -1) {
+                            GF.slide = 0;
+                            if (y == GFC.y) {
+                                if (GF.value < GFC.level) GF.value++;
+                            } else if (y == GFC.y + GFC.h - 1) {
+                                if (GF.value) GF.value--;
+                            } else {
+                                value = ((((GFC.h + GFC.y - y - 2) << 1) + 1) * GFC.level) / (GFC.h - 2);
+                                GF.value = (value >> 1) + (value & 1);
+                            }
                         } else {
-                            value = ((((GFC.h + GFC.y - y - 2) << 1) + 1) * GFC.level) / (GFC.h - 2);
-                            GF.value = (value >> 1) + (value & 1);
+                            GF.slide = 1;
+                            GF.slide_acc = 0;
+                            if (y == GFC.y)
+                                value = GFC.level;
+                            else if (y == (GFC.y + GFC.h - 1))
+                                value = 0;
+                            else {
+                                value = ((((GFC.h + GFC.y - y - 2) << 1) + 1) * GFC.level) / (GFC.h - 2);
+                                value = (value >> 1) + (value & 1);
+                            }
+                            GF.slide_end = value;
+                            value = ((GFC.h - 2) << 4) / GFC.level;
+                            if (value == 0) value = 1;
+                            GF.slide_delta = value;
+                            GF.slide_dir = GF.slide_end > GF.value;
                         }
                         break;
                 }
@@ -281,9 +358,7 @@ void grid_process_key(scene_state_t *ss, u8 _x, u8 _y, u8 z, u8 ignore_rotate) {
     if (refresh) SG.grid_dirty = SG.scr_dirty = 1;
 }
 
-void grid_process_key_hold_repeat(scene_state_t *ss, u8 _x, u8 _y, u8 ignore_rotate, u8 is_hold) {
-    u8 x = SG.rotate && !ignore_rotate ? monome_size_x() - _x - 1 : _x;
-    u8 y = SG.rotate && !ignore_rotate ? monome_size_y() - _y - 1 : _y;
+void grid_process_key_hold_repeat(scene_state_t *ss, u8 x, u8 y, u8 is_hold) {
     u8 refresh = 0;
     u8 scripts[SCRIPT_COUNT];
     for (u8 i = 0; i < SCRIPT_COUNT; i++) scripts[i] = 0;
@@ -327,16 +402,46 @@ void grid_process_key_hold_repeat(scene_state_t *ss, u8 _x, u8 _y, u8 ignore_rot
 }
 
 void hold_repeat_timer_callback(void* o) {
-    hold_repeat_timer* timer = o;
-    u8 is_hold = timer->used == 1;
+    hold_repeat_info* hr = o;
+    u8 is_hold = hr->used == 1;
     if (is_hold) {
-        timer_set(&timer->timer, GRID_KEY_REPEAT_RATE);
-        timer->used = 2;
+        timer_set(&hr->timer, GRID_KEY_REPEAT_RATE);
+        hr->used = 2;
     }
-    grid_process_key_hold_repeat(timer->ss, timer->x, timer->y, timer->ignore_rotate, is_hold);
+    grid_process_key_hold_repeat(hr->ss, hr->x, hr->y, is_hold);
 }
 
 void grid_process_fader_slew(scene_state_t *ss) {
+    u8 refresh = 0;
+    u8 scripts[SCRIPT_COUNT];
+    for (u8 i = 0; i < SCRIPT_COUNT; i++) scripts[i] = 0;
+    
+    for (u8 i = 0; i < GRID_FADER_COUNT; i++) {
+        if (!GF.slide) continue;
+        GF.slide_acc++;
+        if (GF.slide_acc >= GF.slide_delta) {
+            GF.slide_acc = 0;
+            if (GF.slide_dir)
+                GF.value++;
+            else
+                GF.value--;
+            if ((GF.slide_dir && GF.value >= GF.slide_end) ||
+                (!GF.slide_dir && GF.value <= GF.slide_end)) {
+                GF.value = GF.slide_end;
+                GF.slide = 0;
+            }
+            SG.latest_fader = i;
+            SG.latest_group = GFC.group;
+            if (GFC.script != -1) run_script(ss, GFC.script);
+            if (SG.group[GFC.group].script != -1) scripts[SG.group[GFC.group].script] = 1;
+            refresh = 1;
+        }
+    }
+
+    for (u8 i = 0; i < SCRIPT_COUNT; i++)
+        if (scripts[i]) run_script(ss, i);
+
+    if (refresh) SG.grid_dirty = SG.scr_dirty = 1;
 }
 
 bool grid_within_area(u8 x, u8 y, grid_common_t *gc) {
