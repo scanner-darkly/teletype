@@ -1,5 +1,25 @@
 # What's new?
 
+## Version 2.3
+
+### Grid Integration
+
+TBA
+
+### New Operators
+
+`P.MIN` `PN.MIN` `P.MAX` `PN.MAX` returns the position for the first smallest/largest value in a pattern between the `START` and `END` points.
+`TO.CV.CALIB` allows you to lock-in an offset across power cycles to calibrate your TELEX CV output (`TO.CV.RESET` removes the calibration).
+`TO.ENV` now accepts gate values (1/0) to trigger the attack and decay.
+
+### Support for the Orthogonal Devices ER-301 Sound Computer over i2c
+
+You now can connect up to three ER-301s via i2c and address up to 100 virtual CV channels and 100 virtual TR channels per ER-301. (The outputs range 1-100, 101-200, and 201-300 respectively.) To function, this requires a slight mod to current in-market ER-301s and a specialized i2c cable that reorders two of the pins. Find more information [on the Orthogonal Devices ER-301 Wiki Teletype Integration Page](http://wiki.orthogonaldevices.com/index.php/ER-301/Teletype_Integration).
+
+### Support for the 16n Faderbank via i2c
+
+The 16n Faderbank is an open-source sixteen fader controller with support for USB MIDI, standard MIDI, and i2c communication with the Teletype. It operates just like an IN or PARAM (or the TXi for that matter) in that you read values from the device. You use the operator FADER (or the alias FB) and the number of the slider you wish to poll (1-16). Know that longer cables may require that you use a powered bus board even if you only have one device on your Teletype's i2c bus. (You will know that you have a problem if your Teletype randomly hangs on reads.)
+
 ## Version 2.1
 
 Teletype version 2.1 introduces new operators that mature the syntax and capability of the Teletype, as well as several bug fixes and enhancement features.
