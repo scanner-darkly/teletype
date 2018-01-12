@@ -21,6 +21,9 @@ static void op_FADER_get(const void *NOTUSED(data), scene_state_t *ss,
     uint16_t input = cs_pop(cs);
     // zero-index the input
     input -= 1;
+    // return if out of range
+    if (input < 0 || input > 15)
+        return;
     // convert the input to the device and the port
     uint8_t port = input % 16;
     uint8_t device = input / 16;
