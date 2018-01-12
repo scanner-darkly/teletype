@@ -11,11 +11,10 @@
 
 #define FIRSTRUN_KEY 0x22
 #define BUTTON_STATE_SIZE (GRID_BUTTON_COUNT >> 3)
-#define FADER_STATE_SIZE (GRID_FADER_COUNT >> 1)
 
 typedef struct {
     uint8_t button_states[BUTTON_STATE_SIZE];
-    uint8_t fader_states[FADER_STATE_SIZE];
+    uint8_t fader_states[GRID_FADER_COUNT];
 } grid_data_t;
 static grid_data_t grid_data;
 
@@ -101,17 +100,13 @@ static void pack_grid(scene_state_t *scene) {
     for (uint16_t i = 0; i < GRID_BUTTON_COUNT; i++) {
         byte |= (scene->grid.button[i].state != 0) << (i & 7);
         if ((i & 7) == 7) {
-            if (++byte_count >= BUTTON_STATE_SIZE) break;
             grid_data.button_states[byte_count] = byte;
             byte = 0;
+            if (++byte_count >= BUTTON_STATE_SIZE) break;
         }
     }
-    for (uint16_t i = 0; i < GRID_FADER_COUNT; i += 2) {
-        byte = i >> 1;
-        if (byte >= FADER_STATE_SIZE) break;
-        grid_data.fader_states[byte] =
-            (scene->grid.fader[i].value << 4) + scene->grid.fader[i + 1].value;
-    }
+    for (uint16_t i = 0; i < GRID_FADER_COUNT; i++)
+        grid_data.fader_states[i] = scene->grid.fader[i].value;
 }
 
 static void unpack_grid(scene_state_t *scene) {
@@ -119,9 +114,6 @@ static void unpack_grid(scene_state_t *scene) {
         scene->grid.button[i].state =
             0 != (grid_data.button_states[i >> 3] & (1 << (i & 7)));
     }
-    for (uint16_t i = 0; i < GRID_FADER_COUNT; i += 2) {
-        scene->grid.fader[i].value = grid_data.fader_states[i >> 1] >> 4;
-        scene->grid.fader[i + 1].value =
-            grid_data.fader_states[i >> 1] & 0b1111;
-    }
+    for (uint16_t i = 0; i < GRID_FADER_COUNT; i++)
+        scene->grid.fader[i].value = grid_data.fader_states[i];
 }

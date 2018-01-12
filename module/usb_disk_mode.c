@@ -417,6 +417,7 @@ void tele_usb_disk() {
     nav_exit();
 }
 
+char fvalue[36];
 static void grid_usb_write(scene_state_t *scene) {
     file_putc('\n');
     file_putc('#');
@@ -428,8 +429,8 @@ static void grid_usb_write(scene_state_t *scene) {
     }
     file_putc('\n');
     for (uint16_t i = 0; i < GRID_FADER_COUNT; i++) {
-        if (scene->grid.fader[i].value >= 10) file_putc('1');
-        file_putc('0' + (scene->grid.fader[i].value % 10));
+        itoa(scene->grid.fader[i].value, fvalue, 10);
+        file_write_buf((uint8_t *)fvalue, strlen(fvalue));
         file_putc((i & 15) == 15 ? '\n' : '\t');
     }
 }
