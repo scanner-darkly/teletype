@@ -412,8 +412,11 @@ void TXReceive(uint8_t model, command_state_t *cs, uint8_t mode, bool shift) {
     // zero-index the output
     uint8_t input = cs_pop(cs) - 1;
     // return if out of range
-    if (input < 0 || input > 31)
+    if (input < 0 || input > 31) {
+        // need to put a zero on the stack for tests to pass
+        cs_push(cs, 0);
         return;
+    }
     // send the port, device and address
     uint8_t port = input & 3;
     uint8_t device = input >> 2;
