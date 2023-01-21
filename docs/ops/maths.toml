@@ -316,6 +316,30 @@ For further detail ["see the manual"][nr_manual].
 [nr_manual]: https://static1.squarespace.com/static/58c709192e69cf2422026fa6/t/5e6041ad4cbc0979d6d793f2/1583366574430/NR_manual.pdf
 """
 
+["DR.T"]
+prototype = "DR.T b p q l s"
+short = "Tresillo helper, `b` is the drum bank (`0-4`), `p` is first pattern (0-215), `q` is the second pattern (0-215), `l` is length (`1-64`), and step is the step number (0-length-1), returns `0` or `1`"
+description = """
+The Tresillo helper uses the preset drum patterns described in the drum pattern help function in a 3, 3, 2 rythmic formation. In the tresillo, pattern 1 will be repeated twice for a number of steps determined by the overall length of the pattern. A pattern of length 8 will play the first three steps of your selected pattern 1 twice, and 
+the first two steps of pattern 2 once. A pattern length of 16 will play the first six steps of selected pattern 1 twice, and the first four steps of pattern 2 once. And so on. The max length is 64. Length will be rounded down to the nearest multiple of 8. The step number wraps at the given length.
+"""
+
+["DR.P"]
+prototype = "DR.P b p s"
+short = "Drum pattern helper, `b` is the drum bank (`0-4`), `p` is the pattern (0-215) and step is the step number (0-15), returns `0` or `1`"
+description = """
+The drum helper uses preset drum patterns to give 16-step gate patterns. Gates wrap after step 16. Bank 0 is a set of pseudo random gates increasing in density at higher numbered patterns, where pattern 0 is empty,
+and pattern 215 is 1s. Bank 1 is bass drum patterns. Bank 2 is snare drum patterns. Bank 3 is closed hi-hats. Bank 4 is open hi-hits and in some cases cymbals. Bank 1-4 patterns are related to each other (bank 1 pattern 1's bass drum pattern fits bank 2 pattern 1's snare drum pattern). 
+The patterns are from [Paul Wenzel's "Pocket Operations" book](https://shittyrecording.studio/).
+"""
+
+["DR.V"]
+prototype = "DR.V p s"
+short = "Velocity helper. `p` is the pattern (0-9). `s` is the step number (0-15)"
+description = """
+The velocity helper gives velocity values (0-16383) at each step. The values are intended to be used for drum hit velocities. There are 16 steps, which wrap around. Divide by 129 to convert to midi cc values.
+"""
+
 [BPM]
 prototype = "BPM x"
 short = "milliseconds per beat in BPM `x`"

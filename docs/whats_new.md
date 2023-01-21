@@ -14,6 +14,7 @@
 - **IMP**: fader ops now support up to four faderbanks
 - **NEW**: new Disting EX ops: dual algorithms, `EX.M.N#`, `EX.M.NO#`, `EX.M.CC#`
 - **FIX**: reset M timer when changing metro rate
+- **NEW**: drum ops: `DR.P`, `DR.V`, `DR.TR`
 
 ## v4.0.0
 

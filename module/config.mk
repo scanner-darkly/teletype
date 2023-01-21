@@ -76,6 +76,7 @@ CSRCS = \
 	../src/command.c					\
 	../src/every.c					\
 	../src/helpers.c					\
+	../src/drum_helpers.c					\
 	../src/match_token.c					\
 	../src/scanner.c					\
 	../src/scale.c						\

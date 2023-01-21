@@ -183,7 +183,7 @@ const char* help3[HELP3_LENGTH] = { "3/16 PARAMETERS",
                                     "FB.C.R X",
                                     "   RESET FADER X CALIBRATION" };
 
-#define HELP4_LENGTH 78
+#define HELP4_LENGTH 95
 const char* help4[HELP4_LENGTH] = { "4/16 DATA AND TABLES",
                                     " ",
                                     "ALL PARAMS HAVE 16B RANGE",
@@ -261,7 +261,25 @@ const char* help4[HELP4_LENGTH] = { "4/16 DATA AND TABLES",
                                     "  LYD = 0, 2, 1, 6, 0, 1, 1",
                                     "  LOC = 6, 0, 1, 1, 0, 2, 1",
                                     "  MYX = 2, 1, 6, 0, 1, 1, 0",
-                                    "  RETURNS N TABLE VALUE" };
+                                    "  RETURNS N TABLE VALUE", 
+                                    "   ",
+                                    "DRUM PATTERN OP - DR.P",
+                                    "DR.P B P S",
+                                    "   B = BANK (0-5)",
+                                    "   P = PATTERN (0-215)",
+                                    "   S = STEP (0-15)",
+                                    "DRUM TRESILLO OP - DR.T",
+                                    "DR.T B P Q L S",
+                                    "   B = BANK (0-5)",
+                                    "   P = PATTERN 1 (0-215)",
+                                    "   Q = PATTERN 2 (0-215)",
+                                    "   L = LENGTH (8-64)",
+                                    "   S = STEP (0- LENGTH-1)",                                    
+                                    "DRUM VELOCITY OP - DR.V",
+                                    "DR.V P S",
+                                    "   P = PATTERN (0-9)",
+                                    "   S = STEP (0-15)"                                     
+                                    };
 
 #define HELP5_LENGTH 128
 const char* help5[HELP5_LENGTH] = { "5/16 OPERATORS",

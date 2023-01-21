@@ -209,7 +209,7 @@ short = "send MIDI Note On message on channel `x` for note `y` (0..127) and velo
 prototype = "EX.M.NO x"
 short = "send MIDI Note off message for note `x` (0..127)"
 
-["EX.M.NO"]
+["EX.M.NO#"]
 prototype = "EX.M.NO x y"
 short = "send MIDI Note off message on channel `x` for note `y` (0..127)"
 

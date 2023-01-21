@@ -225,7 +225,7 @@
         "OUTR"        => { MATCH_OP(E_OP_OUTR); };
         "INRI"        => { MATCH_OP(E_OP_INRI); };
         "OUTRI"       => { MATCH_OP(E_OP_OUTRI); };
-	"NZ"          => { MATCH_OP(E_OP_NZ); };
+	    "NZ"          => { MATCH_OP(E_OP_NZ); };
         "EZ"          => { MATCH_OP(E_OP_EZ); };
         "RSH"         => { MATCH_OP(E_OP_RSH); };
         "LSH"         => { MATCH_OP(E_OP_LSH); };
@@ -255,6 +255,9 @@
         "VV"          => { MATCH_OP(E_OP_VV); };
         "ER"          => { MATCH_OP(E_OP_ER); };
         "NR"          => { MATCH_OP(E_OP_NR); };
+        "DR.T"        => { MATCH_OP(E_OP_DR_T); };
+        "DR.P"        => { MATCH_OP(E_OP_DR_P); };
+        "DR.V"        => { MATCH_OP(E_OP_DR_V); };
         "BPM"         => { MATCH_OP(E_OP_BPM);; };
         "|"           => { MATCH_OP(E_OP_BIT_OR);; };
         "&"           => { MATCH_OP(E_OP_BIT_AND);; };
