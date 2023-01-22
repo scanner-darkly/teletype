@@ -53,7 +53,7 @@ description = """
 Set maximum note number for MIDI notes to `x` (0..127), using mode `y` (0..3). Default is `x = 0` and `y = 0`. The following modes are available for notes higher than the maximum: 0) Ignore notes 1) Clamp notes 2) Fold back notes by one octave 3) Fold back notes by multiple octaves. Use `I2M.MAX#` to add channel parameter.
 """
 
-["I2M.MAX"]
+["I2M.MAX#"]
 prototype = "I2M.MAX# ch x y"  
 short = "Set maximum note number for MIDI notes to `x` (0..127), using mode `y` (0..3) for channel `ch`"  
 
@@ -221,7 +221,7 @@ Send MIDI NRPN message for parameter MSB `x` and LSB `y` with value `y` (0..1638
 
 ["I2M.NRPN.SET#"]  
 prototype = "I2M.NRPN.SET# ch x y z"  
-short = "Send MIDI NRPN message for parameter MSB `x` and LSB `y` with value `y` (0..16383) on channel `ch`, bypassing any slew settings"  
+short = "Send MIDI NRPN message for parameter MSB `x` and LSB `y` with value `y` (0..16383) to channel `ch`, bypassing any slew settings"  
 
 ["I2M.PRG"]  
 prototype = "I2M.PRG x"  
@@ -452,16 +452,16 @@ Set the play direction `x` (0..2) of the buffer. The following directions are av
 
 ["I2M.B.SPE"]  
 prototype = "I2M.B.SPE x"  
-short = "Set the playing speed `x` (1..32767) of the buffer. `x = 100` is equivalent to "normal speed", `x = 50` means double the speed, `x = 200` means half the speed, etc."
+short = "Set the playing speed `x` (1..32767) of the buffer. `x = 100` is equivalent to 'normal speed', `x = 50` means double the speed, `x = 200` means half the speed, etc."
 description = """
-Set the playing speed `x` (1..32767) of the buffer. `x = 100` is equivalent to "normal speed", `x = 50` means double the speed, `x = 200` means half the speed, etc. Of course, all values in between can be chosen. Keep in mind that changing the speed only affects notes that have been already recorded to the buffer before the change in speed; all notes recorded afterwards are recorded relative to the new speed. Default is `x = 100`.
+Set the playing speed `x` (1..32767) of the buffer. `x = 100` is equivalent to 'normal speed', `x = 50` means double the speed, `x = 200` means half the speed, etc. Of course, all values in between can be chosen. Keep in mind that changing the speed only affects notes that have been already recorded to the buffer before the change in speed; all notes recorded afterwards are recorded relative to the new speed. Default is `x = 100`.
 """
 
 ["I2M.B.FB"]  
 prototype = "I2M.B.FB x"  
 short = "Set the feedback length `x` (0..255) of the buffer"
 description = """
-Set the feedback length `x` (0..255) of the buffer. By default, each recorded note is getting decreased in velocity with each buffer iteration. The feedback value determines, how many buffer iterations a recorded note will "survive" in the buffer, before the decreasing velocity will reach zero (meaning the note is remove from the buffer). Set `x = 0` to turn off the automatic decrease in velocity, keeping notes in the buffer indefinitely. Use this setting in combination with `I2M.B.VSHIFT` or `I2M.B.CLR`. Default is `x = 8`.
+Set the feedback length `x` (0..255) of the buffer. By default, each recorded note is getting decreased in velocity with each buffer iteration. The feedback value determines, how many buffer iterations a recorded note will 'survive' in the buffer, before the decreasing velocity will reach zero (meaning the note is remove from the buffer). Set `x = 0` to turn off the automatic decrease in velocity, keeping notes in the buffer indefinitely. Use this setting in combination with `I2M.B.VSHIFT` or `I2M.B.CLR`. Default is `x = 8`.
 """
 
 ["I2M.B.NSHIFT"]  
@@ -480,9 +480,9 @@ Set the velocity shift of recorded notes to `x` (-127..127). With each buffer it
 
 ["I2M.B.TSHIFT"]    
 prototype = "I2M.B.TSHIFT x"  
-short = "Set the note duration shift ("time shift") of recorded notes to `x` ms (-16384..16383)"
+short = "Set the note duration shift ('time shift') of recorded notes to `x` ms (-16384..16383)"
 description = """
-Set the note duration shift ("time shift") of recorded notes to `x` ms (-16384..16383). With each buffer iteration, this value gets added accumulatively to the original note duration. E.g. with a duration shift setting of `x = 100`, a recorded note with duration `200` will be played with duration `300` during the first buffer iteration, with duration `400` during the second iteration, etc. Default is `x = 0`.
+Set the note duration shift ('time shift') of recorded notes to `x` ms (-16384..16383). With each buffer iteration, this value gets added accumulatively to the original note duration. E.g. with a duration shift setting of `x = 100`, a recorded note with duration `200` will be played with duration `300` during the first buffer iteration, with duration `400` during the second iteration, etc. Default is `x = 0`.
 """
 
 ["I2M.B.NOFF"]     
@@ -501,9 +501,9 @@ Set the velocity offset of recorded notes to `x` (-127..127). This value gets ad
 
 ["I2M.B.TOFF"]    
 prototype = "I2M.B.TOFF x"  
-short = "Set the note duration offset ("time offset") of recorded notes to `x` ms (-16384..16383)"
+short = "Set the note duration offset ('time offset') of recorded notes to `x` ms (-16384..16383)"
 description = """
-Set the note duration offset ("time offset") of recorded notes to `x` ms (-16384..16383). This value gets added once to the original note duration and is then kept for all buffer iterations. E.g. with a duration offset setting of `x = -50`, a recorded note with duration `200` will be played with duration `150` for all buffer iterations. Default is `x = 0`.
+Set the note duration offset ('time offset') of recorded notes to `x` ms (-16384..16383). This value gets added once to the original note duration and is then kept for all buffer iterations. E.g. with a duration offset setting of `x = -50`, a recorded note with duration `200` will be played with duration `150` for all buffer iterations. Default is `x = 0`.
 """
 
 ["I2M.B.CLR"]  
@@ -528,9 +528,9 @@ Get currently set MIDI channel / Set MIDI channel `x` (1..16) for MIDI in. Defau
 
 ["I2M.Q.LATCH"]  
 prototype = "I2M.Q.LATCH x"  
-short = "Turn on or off "latching" for MIDI notes received via MIDI in"  
+short = "Turn on or off 'latching' for MIDI notes received via MIDI in"  
 description = """
-Turn on or off "latching" for MIDI notes received via MIDI in. `x = 0` means Note Off messages are recorded in the note history, so only notes with keys currently held down on the MIDI controller are stored. `x = 1` means Note Off messages are not recorded in the note history, so notes are still stored after releasing the respective key on the MIDI controller. Default is `x = 1`.
+Turn on or off 'latching' for MIDI notes received via MIDI in. `x = 0` means Note Off messages are recorded in the note history, so only notes with keys currently held down on the MIDI controller are stored. `x = 1` means Note Off messages are not recorded in the note history, so notes are still stored after releasing the respective key on the MIDI controller. Default is `x = 1`.
 """
 
 ["I2M.Q.NOTE"]  
