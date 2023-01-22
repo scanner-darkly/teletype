@@ -96,11 +96,10 @@ const tele_op_t *tele_ops[E_OP__LENGTH] = {
     &op_RROT, &op_EXP, &op_ABS, &op_SGN, &op_AND, &op_OR, &op_AND3, &op_OR3,
     &op_AND4, &op_OR4, &op_JI, &op_SCALE, &op_SCL, &op_N, &op_VN, &op_HZ,
     &op_N_S, &op_N_C, &op_N_CS, &op_N_B, &op_N_BX, &op_V, &op_VV, &op_ER,
-    &op_NR, &op_DR_T, &op_DR_P, &op_DR_V, &op_BPM, &op_BIT_OR, 
-    &op_BIT_AND, &op_BIT_NOT, &op_BIT_XOR,
-    &op_BSET, &op_BGET, &op_BCLR, &op_BTOG, &op_BREV, &op_XOR, &op_CHAOS,
-    &op_CHAOS_R, &op_CHAOS_ALG, &op_SYM_PLUS, &op_SYM_DASH, &op_SYM_STAR,
-    &op_SYM_FORWARD_SLASH, &op_SYM_PERCENTAGE, &op_SYM_EQUAL_x2,
+    &op_NR, &op_DR_T, &op_DR_P, &op_DR_V, &op_BPM, &op_BIT_OR, &op_BIT_AND,
+    &op_BIT_NOT, &op_BIT_XOR, &op_BSET, &op_BGET, &op_BCLR, &op_BTOG, &op_BREV,
+    &op_XOR, &op_CHAOS, &op_CHAOS_R, &op_CHAOS_ALG, &op_SYM_PLUS, &op_SYM_DASH,
+    &op_SYM_STAR, &op_SYM_FORWARD_SLASH, &op_SYM_PERCENTAGE, &op_SYM_EQUAL_x2,
     &op_SYM_EXCLAMATION_EQUAL, &op_SYM_LEFT_ANGLED, &op_SYM_RIGHT_ANGLED,
     &op_SYM_LEFT_ANGLED_EQUAL, &op_SYM_RIGHT_ANGLED_EQUAL,
     &op_SYM_RIGHT_ANGLED_LEFT_ANGLED, &op_SYM_LEFT_ANGLED_RIGHT_ANGLED,
@@ -280,7 +279,7 @@ const tele_op_t *tele_ops[E_OP__LENGTH] = {
     &op_EX_PRE1, &op_EX_PRE2, &op_EX_SAVE1, &op_EX_SAVE2, &op_EX_Z1, &op_EX_Z2,
     &op_EX_ZO1, &op_EX_ZO2, &op_EX_M_N_POUND, &op_EX_M_NO_POUND,
     &op_EX_M_CC_POUND,
-    
+
     // i2c2midi
     &op_I2M_CH, &op_I2M_TIME, &op_I2M_T, &op_I2M_SHIFT, &op_I2M_S, &op_I2M_NOTE,
     &op_I2M_N, &op_I2M_NOTE_O, &op_I2M_NO, &op_I2M_N_POUND, &op_I2M_NO_POUND,
@@ -305,8 +304,7 @@ const tele_op_t *tele_ops[E_OP__LENGTH] = {
     &op_I2M_B_R, &op_I2M_B_L, &op_I2M_B_START, &op_I2M_B_END, &op_I2M_B_DIR,
     &op_I2M_B_SPE, &op_I2M_B_FB, &op_I2M_B_NSHIFT, &op_I2M_B_VSHIFT,
     &op_I2M_B_TSHIFT, &op_I2M_B_NOFF, &op_I2M_B_VOFF, &op_I2M_B_TOFF,
-    &op_I2M_B_CLR, &op_I2M_B_MODE, &op_I2M_C_QN, &op_I2M_C_QV,
-    &op_I2M_TEST, 
+    &op_I2M_B_CLR, &op_I2M_B_MODE, &op_I2M_C_QN, &op_I2M_C_QV, &op_I2M_TEST,
 
     // seed
     &op_SEED, &op_RAND_SEED, &op_SYM_RAND_SD, &op_SYM_R_SD, &op_TOSS_SEED,

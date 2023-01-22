@@ -202,7 +202,7 @@ prototype = "EX.M.N x y"
 short = "send MIDI Note On message for note `x` (0..127) and velocity `y` (0..127)"
 
 ["EX.M.N#"]
-prototype = "EX.M.N x y z"
+prototype = "EX.M.N# x y z"
 short = "send MIDI Note On message on channel `x` for note `y` (0..127) and velocity `z` (0..127)"
 
 ["EX.M.NO"]
@@ -210,7 +210,7 @@ prototype = "EX.M.NO x"
 short = "send MIDI Note off message for note `x` (0..127)"
 
 ["EX.M.NO#"]
-prototype = "EX.M.NO x y"
+prototype = "EX.M.NO# x y"
 short = "send MIDI Note off message on channel `x` for note `y` (0..127)"
 
 ["EX.M.CC"]
@@ -218,7 +218,7 @@ prototype = "EX.M.CC x y"
 short = "send MIDI CC message for controller `x` (0..127) and value `y` (0..127)"
 
 ["EX.M.CC#"]
-prototype = "EX.M.CC x y z"
+prototype = "EX.M.CC# x y z"
 short = "send MIDI CC message on channel `x` for controller `y` (0..127) and value `z` (0..127)"
 
 ["EX.M.PB"]

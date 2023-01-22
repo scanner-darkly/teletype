@@ -2030,11 +2030,11 @@ static void grid_screen_refresh_info(scene_state_t *ss, u8 page, u8 x1, u8 y1,
 
 void grid_fill_area_scr(s8 x, s8 y, s8 w, s8 h, s8 level, u8 page) {
     if (level == LED_OFF) return;
-    
+
     s16 x_end = min(GRID_MAX_DIMENSION, x + w);
     s16 y_start = y;
     s16 y_end = min(GRID_MAX_DIMENSION, y + h);
-    
+
     if (page) {
         if (y_end <= 8) return;
         if (y_start < 8) y_start = 8;
@@ -2045,7 +2045,7 @@ void grid_fill_area_scr(s8 x, s8 y, s8 w, s8 h, s8 level, u8 page) {
         if (y_start >= 8) return;
         if (y_end > 8) y_end = 8;
     }
-    
+
     if (level == LED_DIM) {
         for (s16 _x = x; _x < x_end; _x++)
             for (s16 _y = y_start; _y < y_end; _y++)

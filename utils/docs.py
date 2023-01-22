@@ -62,7 +62,8 @@ OPS_SECTIONS = [
     "wslashdelay",
     "wslashsynth",
     "wslashtape",
-    "crow"
+    "crow",
+    "i2c2midi"
 ]
 
 

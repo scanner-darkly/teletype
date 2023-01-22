@@ -15,6 +15,7 @@
 - **NEW**: new Disting EX ops: dual algorithms, `EX.M.N#`, `EX.M.NO#`, `EX.M.CC#`
 - **FIX**: reset M timer when changing metro rate
 - **NEW**: new Drum Ops: `DR.T`, `DR.V`, `DR.P`
+- **NEW**: [I2C2MIDI](https://github.com/attowatt/i2c2midi) ops
 
 ## v4.0.0
 
