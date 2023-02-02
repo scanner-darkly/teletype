@@ -16,6 +16,7 @@
 - **FIX**: reset M timer when changing metro rate
 - **NEW**: new Drum Ops: `DR.T`, `DR.V`, `DR.P`
 - **NEW**: [I2C2MIDI](https://github.com/attowatt/i2c2midi) ops
+- **FIX**: fix BPM rounding error
 
 ## v4.0.0
 

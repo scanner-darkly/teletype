@@ -1255,7 +1255,8 @@ static void op_BPM_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
     uint32_t ret;
     if (a < 2) a = 2;
     if (a > 1000) a = 1000;
-    ret = ((((uint32_t)(1 << 31)) / ((a << 20) / 60)) * 1000) >> 11;
+    ret = ((((uint32_t)(1 << 31)) / ((a << 20) / 60)) * 1000) >> 10;
+    ret = ret / 2 + (ret & 1); // rounding
     cs_push(cs, (int16_t)ret);
 }
 
