@@ -6,7 +6,7 @@
 #define METRO_SCRIPT REGULAR_SCRIPT_COUNT
 #define INIT_SCRIPT (METRO_SCRIPT + 1)
 
-// used for live screen, should have the max index
+// used for live screen and delays, should have the max index
 #define TEMP_SCRIPT (INIT_SCRIPT + 1)
 
 #define EDITABLE_SCRIPT_COUNT (INIT_SCRIPT + 1)
