@@ -625,6 +625,7 @@ void ss_reset_in_cal(scene_state_t *ss) {
 void es_init(exec_state_t *es) {
     es->exec_depth = 0;
     es->overflow = false;
+    for (uint8_t i = 0; i < EXEC_DEPTH; i++) es->variables[i].script_number = 0;
 }
 
 size_t es_depth(exec_state_t *es) {

@@ -381,7 +381,7 @@ typedef struct {
     bool while_continue;
     uint16_t while_depth;
     bool breaking;
-    int32_t script_number;
+    uint8_t script_number;
     uint8_t line_number;
     bool delayed;
 } exec_vars_t;
