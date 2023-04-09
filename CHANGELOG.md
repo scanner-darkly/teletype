@@ -19,6 +19,7 @@
 - **FIX**: fixes a transcription error  in the SD drum helper patterns
 - **NEW**: Ten new patterns for `DR.V` and optimised old patterns
 - **FIX**: fix BPM rounding error
+- **FIX**: support all line ending types for USB load
 
 ## v4.0.0
 

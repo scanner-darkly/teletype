@@ -312,14 +312,12 @@ extern size_t ss_patterns_size(void);
 
 uint8_t ss_get_script_len(scene_state_t *ss, uint8_t idx);
 const tele_command_t *ss_get_script_command(scene_state_t *ss,
-                                            uint8_t script_idx,
-                                            size_t c_idx);
+                                            uint8_t script_idx, size_t c_idx);
 void ss_copy_script_command(tele_command_t *dest, scene_state_t *ss,
                             uint8_t script_idx, size_t c_idx);
-bool ss_get_script_comment(scene_state_t *ss, uint8_t script_idx,
-                           size_t c_idx);
-void ss_set_script_comment(scene_state_t *ss, uint8_t script_idx,
-                           size_t c_idx, uint8_t on);
+bool ss_get_script_comment(scene_state_t *ss, uint8_t script_idx, size_t c_idx);
+void ss_set_script_comment(scene_state_t *ss, uint8_t script_idx, size_t c_idx,
+                           uint8_t on);
 void ss_toggle_script_comment(scene_state_t *ss, uint8_t script_idx,
                               size_t c_idx);
 void ss_overwrite_script_command(scene_state_t *ss, uint8_t script_idx,
@@ -334,8 +332,7 @@ scene_script_t *ss_scripts_ptr(scene_state_t *ss);
 size_t ss_scripts_size(uint8_t script_count);
 int16_t ss_get_script_last(scene_state_t *ss, uint8_t idx);
 void ss_update_script_last(scene_state_t *ss, uint8_t idx);
-every_count_t *ss_get_every(scene_state_t *ss, uint8_t idx,
-                            uint8_t line);
+every_count_t *ss_get_every(scene_state_t *ss, uint8_t idx, uint8_t line);
 void ss_sync_every(scene_state_t *ss, int16_t count);
 bool every_is_now(scene_state_t *ss, every_count_t *e);
 bool skip_is_now(scene_state_t *ss, every_count_t *e);

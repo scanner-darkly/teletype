@@ -179,9 +179,9 @@ static void mod_EVERY_func(scene_state_t *ss, exec_state_t *es,
                            command_state_t *cs,
                            const tele_command_t *post_command) {
     int16_t mod = cs_pop(cs);
-    
+
     if (es_variables(es)->script_number >= TOTAL_SCRIPT_COUNT) return;
-    
+
     every_count_t *every = ss_get_every(ss, es_variables(es)->script_number,
                                         es_variables(es)->line_number);
     every_set_skip(every, false);
@@ -196,7 +196,7 @@ static void mod_SKIP_func(scene_state_t *ss, exec_state_t *es,
     int16_t mod = cs_pop(cs);
 
     if (es_variables(es)->script_number >= TOTAL_SCRIPT_COUNT) return;
-    
+
     every_count_t *every = ss_get_every(ss, es_variables(es)->script_number,
                                         es_variables(es)->line_number);
     every_set_skip(every, true);
@@ -286,13 +286,13 @@ static void op_SCRIPT_POL_set(const void *NOTUSED(data), scene_state_t *ss,
     uint8_t pol = cs_pop(cs);
     if (pol > 3) return;
     if (a == 0) {
-        for (uint8_t i = 0; i < TRIGGER_INPUTS; i++) { ss_set_script_pol(ss, i, pol); }
+        for (uint8_t i = 0; i < TRIGGER_INPUTS; i++) {
+            ss_set_script_pol(ss, i, pol);
+        }
     }
     else {
         uint8_t s = a - 1;
-        if (s >= 0 && s < TRIGGER_INPUTS) {
-            ss_set_script_pol(ss, s, pol);
-        }
+        if (s >= 0 && s < TRIGGER_INPUTS) { ss_set_script_pol(ss, s, pol); }
     }
 }
 

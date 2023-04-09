@@ -26,7 +26,8 @@ void ss_init(scene_state_t *ss) {
     memset(&ss->scripts, 0, ss_scripts_size(TOTAL_SCRIPT_COUNT));
     turtle_init(&ss->turtle);
     uint32_t ticks = tele_get_ticks();
-    for (size_t i = 0; i < EDITABLE_SCRIPT_COUNT; i++) ss->scripts[i].last_time = ticks;
+    for (size_t i = 0; i < EDITABLE_SCRIPT_COUNT; i++)
+        ss->scripts[i].last_time = ticks;
     ss->variables.time = 0;
     ss->variables.time_act = 1;
     ss->i2c_op_address = -1;
@@ -59,24 +60,25 @@ void ss_variables_init(scene_state_t *ss) {
         .tr_time = { 100, 100, 100, 100 },
         .in_range = { 0, 16383 },
         .param_range = { 0, 16383 },
-        .fader_ranges = {
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-            { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
-        },
+        .fader_ranges =
+            {
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+                { 0, 16383 }, { 0, 16383 }, { 0, 16383 }, { 0, 16383 },
+            },
     };
 
     memcpy(&ss->variables, &default_variables, sizeof(default_variables));
@@ -304,14 +306,12 @@ uint8_t ss_get_script_len(scene_state_t *ss, uint8_t idx) {
 }
 
 // private
-static void ss_set_script_len(scene_state_t *ss, uint8_t idx,
-                              uint8_t l) {
+static void ss_set_script_len(scene_state_t *ss, uint8_t idx, uint8_t l) {
     ss->scripts[idx].l = l;
 }
 
 const tele_command_t *ss_get_script_command(scene_state_t *ss,
-                                            uint8_t script_idx,
-                                            size_t c_idx) {
+                                            uint8_t script_idx, size_t c_idx) {
     return &ss->scripts[script_idx].c[c_idx];
 }
 
@@ -331,8 +331,8 @@ bool ss_get_script_comment(scene_state_t *ss, uint8_t script_idx,
     return ss->scripts[script_idx].c[c_idx].comment;
 }
 
-void ss_set_script_comment(scene_state_t *ss, uint8_t script_idx,
-                           size_t c_idx, uint8_t on) {
+void ss_set_script_comment(scene_state_t *ss, uint8_t script_idx, size_t c_idx,
+                           uint8_t on) {
     ss->scripts[script_idx].c[c_idx].comment = on;
 }
 
@@ -625,7 +625,8 @@ void ss_reset_in_cal(scene_state_t *ss) {
 void es_init(exec_state_t *es) {
     es->exec_depth = 0;
     es->overflow = false;
-    for (uint8_t i = 0; i < EXEC_DEPTH; i++) es->variables[i].script_number = NO_SCRIPT;
+    for (uint8_t i = 0; i < EXEC_DEPTH; i++)
+        es->variables[i].script_number = NO_SCRIPT;
 }
 
 size_t es_depth(exec_state_t *es) {

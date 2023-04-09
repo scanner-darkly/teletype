@@ -17,6 +17,7 @@
 - **NEW**: drum ops: `DR.P`, `DR.V`, `DR.TR`
 - **NEW**: [I2C2MIDI](https://github.com/attowatt/i2c2midi) ops
 - **FIX**: fix BPM rounding error
+- **FIX**: support all line ending types for USB load
 
 ## v4.0.0
 

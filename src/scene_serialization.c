@@ -117,7 +117,7 @@ void serialize_scene(tt_serializer_t* stream, scene_state_t* scene,
     }
 
     // serialize grid
-    
+
     char fvalue[36];
 
     stream->write_char(stream->data, '\n');
@@ -164,24 +164,27 @@ void deserialize_scene(tt_deserializer_t* stream, scene_state_t* scene,
         if (c == '\r') {
             c = '\n';
             prev_cr = 1;
-        } else if (c == '\n' && prev_cr) {
+        }
+        else if (c == '\n' && prev_cr) {
             prev_cr = 0;
             continue;
-        } else {
+        }
+        else {
             prev_cr = 0;
         }
-        
+
         if (c == '#' && new_line) {
             s = STATE_POUND;
             continue;
         }
-        
+
         // SCENE TEXT
         if (s == STATE_DESC) {
             if (c == '\n') {
                 l++;
                 p = 0;
-            } else {
+            }
+            else {
                 if (l < SCENE_TEXT_LINES && p < SCENE_TEXT_CHARS) {
                     (*text)[l][p] = c;
                     p++;
@@ -189,50 +192,54 @@ void deserialize_scene(tt_deserializer_t* stream, scene_state_t* scene,
             }
             continue;
         }
-        
+
         if (s == STATE_POUND) {
             if (c == 'M') {
                 script = METRO_SCRIPT;
                 s2 = STATE_SCRIPT;
-            } else if (c == 'I') {
+            }
+            else if (c == 'I') {
                 script = INIT_SCRIPT;
                 s2 = STATE_SCRIPT;
-            } else if (c == 'P') {
+            }
+            else if (c == 'P') {
                 s2 = STATE_PATTERNS;
-            } else if (c == 'G') {
+            }
+            else if (c == 'G') {
                 grid_state = grid_num = grid_count = 0;
                 s2 = STATE_GRID;
-            } else {
+            }
+            else {
                 script = c - 49;
                 if (script < 0 || script >= EDITABLE_SCRIPT_COUNT) {
                     script = NO_SCRIPT;
-                } else {
+                }
+                else {
                     s2 = STATE_SCRIPT;
                 }
             }
-            
+
             l = 0;
             p = 0;
             s = STATE_POUND_IGNORE;
             continue;
         }
-        
+
         if (s == STATE_POUND_IGNORE) {
-            if (c == '\n') {
-                s = s2;
-            }
+            if (c == '\n') { s = s2; }
             continue;
         }
-        
+
         if (s == STATE_SCRIPT) {
             if (script < 0 || script >= EDITABLE_SCRIPT_COUNT) continue;
-            
+
             if (c != '\n') {
                 if (p < 32) {
                     input[p] = c;
                     p++;
                 }
-            } else {
+            }
+            else {
                 if (p && l < SCRIPT_MAX_COMMANDS) {
                     tele_command_t temp;
                     temp.comment = false;
@@ -244,7 +251,8 @@ void deserialize_scene(tt_deserializer_t* stream, scene_state_t* scene,
                         status = validate(&temp, error_msg);
 
                         if (status == E_OK) {
-                            ss_overwrite_script_command(scene, script, l, &temp);
+                            ss_overwrite_script_command(scene, script, l,
+                                                        &temp);
                             l++;
                         }
                         else {
@@ -269,11 +277,11 @@ void deserialize_scene(tt_deserializer_t* stream, scene_state_t* scene,
             }
             continue;
         }
-        
+
         // PATTERNS
         if (s == STATE_PATTERNS) {
             // tele_patterns[]. l wrap start end v[64]
-            
+
             if (c == '\n' || c == '\t') {
                 if (b < 4) {
                     if (l > 3) {
@@ -285,10 +293,18 @@ void deserialize_scene(tt_deserializer_t* stream, scene_state_t* scene,
                         // stream->print_dbg(" ");
                         // stream->print_dbg_ulong(num);
                     }
-                    else if (l == 0) { ss_set_pattern_len(scene, b, num); }
-                    else if (l == 1) { ss_set_pattern_wrap(scene, b, num); }
-                    else if (l == 2) { ss_set_pattern_start(scene, b, num); }
-                    else if (l == 3) { ss_set_pattern_end(scene, b, num); }
+                    else if (l == 0) {
+                        ss_set_pattern_len(scene, b, num);
+                    }
+                    else if (l == 1) {
+                        ss_set_pattern_wrap(scene, b, num);
+                    }
+                    else if (l == 2) {
+                        ss_set_pattern_start(scene, b, num);
+                    }
+                    else if (l == 3) {
+                        ss_set_pattern_end(scene, b, num);
+                    }
                 }
 
                 b++;
@@ -314,7 +330,7 @@ void deserialize_scene(tt_deserializer_t* stream, scene_state_t* scene,
             }
             continue;
         }
-        
+
         if (s == STATE_GRID) {
             if (grid_state == 0) {
                 if (c >= '0' && c <= '9') {
@@ -326,7 +342,9 @@ void deserialize_scene(tt_deserializer_t* stream, scene_state_t* scene,
                 }
             }
             else if (grid_state == 1) {
-                if (c >= '0' && c <= '9') { grid_num = grid_num * 10 + c - '0'; }
+                if (c >= '0' && c <= '9') {
+                    grid_num = grid_num * 10 + c - '0';
+                }
                 else if (c == '\t' || c == '\n') {
                     if (grid_count < GRID_FADER_COUNT) {
                         scene->grid.fader[grid_count].value = grid_num;

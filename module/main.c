@@ -53,8 +53,8 @@
 #ifdef TELETYPE_PROFILE
 #include "profile.h"
 
-profile_t prof_Script[TOTAL_SCRIPT_COUNT], prof_Delay[DELAY_SIZE], prof_CV, prof_ADC,
-    prof_ScreenRefresh;
+profile_t prof_Script[TOTAL_SCRIPT_COUNT], prof_Delay[DELAY_SIZE], prof_CV,
+    prof_ADC, prof_ScreenRefresh;
 
 void tele_profile_script(size_t s) {
     profile_update(&prof_Script[s]);
@@ -318,18 +318,23 @@ void midiScriptTimer_callback(void* obj) {
     u8 executed[EDITABLE_SCRIPT_COUNT];
     for (uint8_t i = 0; i < EDITABLE_SCRIPT_COUNT; i++) executed[i] = 0;
 
-    if (scene_state.midi.on_count && scene_state.midi.on_script >= 0 && scene_state.midi.on_script < EDITABLE_SCRIPT_COUNT) {
+    if (scene_state.midi.on_count && scene_state.midi.on_script >= 0 &&
+        scene_state.midi.on_script < EDITABLE_SCRIPT_COUNT) {
         run_script(&scene_state, scene_state.midi.on_script);
         executed[scene_state.midi.on_script] = 1;
     }
 
-    if (scene_state.midi.off_count && scene_state.midi.off_script >= 0 && scene_state.midi.off_script < EDITABLE_SCRIPT_COUNT) {
-        if (!executed[scene_state.midi.off_script]) run_script(&scene_state, scene_state.midi.off_script);
+    if (scene_state.midi.off_count && scene_state.midi.off_script >= 0 &&
+        scene_state.midi.off_script < EDITABLE_SCRIPT_COUNT) {
+        if (!executed[scene_state.midi.off_script])
+            run_script(&scene_state, scene_state.midi.off_script);
         executed[scene_state.midi.off_script] = 1;
     }
 
-    if (scene_state.midi.cc_count && scene_state.midi.cc_script >= 0 && scene_state.midi.cc_script < EDITABLE_SCRIPT_COUNT) {
-        if (!executed[scene_state.midi.cc_script]) run_script(&scene_state, scene_state.midi.cc_script);
+    if (scene_state.midi.cc_count && scene_state.midi.cc_script >= 0 &&
+        scene_state.midi.cc_script < EDITABLE_SCRIPT_COUNT) {
+        if (!executed[scene_state.midi.cc_script])
+            run_script(&scene_state, scene_state.midi.cc_script);
     }
 
     scene_state.midi.on_count = 0;
@@ -672,23 +677,31 @@ static void midi_clock_tick(void) {
     if (++midi_clock_counter >= scene_state.midi.clock_div) {
         midi_clock_counter = 0;
         scene_state.midi.last_event_type = 4;
-        if (scene_state.midi.clk_script >= 0 && scene_state.midi.clk_script < EDITABLE_SCRIPT_COUNT) run_script(&scene_state, scene_state.midi.clk_script);
+        if (scene_state.midi.clk_script >= 0 &&
+            scene_state.midi.clk_script < EDITABLE_SCRIPT_COUNT)
+            run_script(&scene_state, scene_state.midi.clk_script);
     }
 }
 
 static void midi_seq_start(void) {
     scene_state.midi.last_event_type = 5;
-    if (scene_state.midi.start_script >= 0 && scene_state.midi.start_script < EDITABLE_SCRIPT_COUNT) run_script(&scene_state, scene_state.midi.start_script);
+    if (scene_state.midi.start_script >= 0 &&
+        scene_state.midi.start_script < EDITABLE_SCRIPT_COUNT)
+        run_script(&scene_state, scene_state.midi.start_script);
 }
 
 static void midi_seq_stop(void) {
     scene_state.midi.last_event_type = 6;
-    if (scene_state.midi.stop_script >= 0 && scene_state.midi.stop_script < EDITABLE_SCRIPT_COUNT) run_script(&scene_state, scene_state.midi.stop_script);
+    if (scene_state.midi.stop_script >= 0 &&
+        scene_state.midi.stop_script < EDITABLE_SCRIPT_COUNT)
+        run_script(&scene_state, scene_state.midi.stop_script);
 }
 
 static void midi_seq_continue(void) {
     scene_state.midi.last_event_type = 7;
-    if (scene_state.midi.continue_script >= 0 && scene_state.midi.continue_script < EDITABLE_SCRIPT_COUNT) run_script(&scene_state, scene_state.midi.continue_script);
+    if (scene_state.midi.continue_script >= 0 &&
+        scene_state.midi.continue_script < EDITABLE_SCRIPT_COUNT)
+        run_script(&scene_state, scene_state.midi.continue_script);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
