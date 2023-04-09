@@ -179,6 +179,9 @@ static void mod_EVERY_func(scene_state_t *ss, exec_state_t *es,
                            command_state_t *cs,
                            const tele_command_t *post_command) {
     int16_t mod = cs_pop(cs);
+    
+    if (es_variables(es)->script_number >= TOTAL_SCRIPT_COUNT) return;
+    
     every_count_t *every = ss_get_every(ss, es_variables(es)->script_number,
                                         es_variables(es)->line_number);
     every_set_skip(every, false);
@@ -191,6 +194,9 @@ static void mod_SKIP_func(scene_state_t *ss, exec_state_t *es,
                           command_state_t *cs,
                           const tele_command_t *post_command) {
     int16_t mod = cs_pop(cs);
+
+    if (es_variables(es)->script_number >= TOTAL_SCRIPT_COUNT) return;
+    
     every_count_t *every = ss_get_every(ss, es_variables(es)->script_number,
                                         es_variables(es)->line_number);
     every_set_skip(every, true);

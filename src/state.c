@@ -442,7 +442,7 @@ every_count_t *ss_get_every(scene_state_t *ss, uint8_t idx,
 }
 
 void ss_sync_every(scene_state_t *ss, int16_t count) {
-    for (int script = 0; script < SCRIPT_COUNT; script++)
+    for (int script = 0; script < TOTAL_SCRIPT_COUNT; script++)
         for (int line = 0; line < SCRIPT_MAX_COMMANDS; line++) {
             int16_t count_e = count;
             if (ss->scripts[script].every[line].mod == 0)
@@ -625,7 +625,7 @@ void ss_reset_in_cal(scene_state_t *ss) {
 void es_init(exec_state_t *es) {
     es->exec_depth = 0;
     es->overflow = false;
-    for (uint8_t i = 0; i < EXEC_DEPTH; i++) es->variables[i].script_number = 0;
+    for (uint8_t i = 0; i < EXEC_DEPTH; i++) es->variables[i].script_number = NO_SCRIPT;
 }
 
 size_t es_depth(exec_state_t *es) {
