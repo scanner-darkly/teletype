@@ -254,7 +254,7 @@ static void op_SCENE_P_get(const void *NOTUSED(data), scene_state_t *ss,
 static void op_SCRIPT_get(const void *NOTUSED(data), scene_state_t *ss,
                           exec_state_t *es, command_state_t *cs) {
     int16_t sn = es_variables(es)->script_number + 1;
-    if (sn >= EDITABLE_SCRIPT_COUNT) sn = 0;
+    if (sn > EDITABLE_SCRIPT_COUNT) sn = 0;
     cs_push(cs, sn);
 }
 
