@@ -1108,7 +1108,8 @@ void tele_kill() {
 }
 
 bool tele_get_input_state(uint8_t n) {
-    return gpio_get_pin_value(A00 + n) > 0;
+    u8 input = device_config.flip ? 7 - n : n;
+    return gpio_get_pin_value(A00 + input) > 0;
 }
 
 void tele_vars_updated() {
