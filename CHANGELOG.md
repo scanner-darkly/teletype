@@ -22,6 +22,8 @@
 - **FIX**: support all line ending types for USB load
 - **FIX**: fix `STATE` not accounting for `DEVICE.FLIP`
 - **FIX**: fix MIDI IN ops channel number being off by 1
+- **FIX**: improve `TR.P` accuracy
+- **FIX**: fix `KILL` not stopping TR pulses in progress
 
 ## v4.0.0
 
