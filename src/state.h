@@ -261,7 +261,6 @@ typedef struct {
     scene_pattern_t patterns[PATTERN_COUNT];
     scene_delay_t delay;
     scene_stack_op_t stack_op;
-    int16_t tr_pulse_timer[TR_COUNT];
     scene_script_t scripts[TOTAL_SCRIPT_COUNT];
     scene_turtle_t turtle;
     bool every_last;

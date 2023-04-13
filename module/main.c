@@ -133,6 +133,7 @@ static softTimer_t monomePollTimer = {.next = NULL, .prev = NULL };
 static softTimer_t monomeRefreshTimer = {.next = NULL, .prev = NULL };
 static softTimer_t gridFaderTimer = {.next = NULL, .prev = NULL };
 static softTimer_t midiScriptTimer = {.next = NULL, .prev = NULL };
+static softTimer_t trPulseTimer[TR_COUNT];
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -150,6 +151,7 @@ static void monome_poll_timer_callback(void* obj);
 static void monome_refresh_timer_callback(void* obj);
 static void grid_fader_timer_callback(void* obj);
 static void midiScriptTimer_callback(void* obj);
+static void trPulseTimer_callback(void* obj);
 
 // event handler prototypes
 static void handler_None(int32_t data);
@@ -1046,6 +1048,36 @@ void tele_tr(uint8_t i, int16_t v) {
         gpio_set_pin_low(pin);
 }
 
+void tele_tr_pulse(uint8_t i, int16_t time) {
+    if (i >= TR_COUNT) return;
+    timer_remove(&trPulseTimer[i]);
+    timer_add(&trPulseTimer[i], time, &trPulseTimer_callback,
+              (void*)(int32_t)i);
+}
+
+void tele_tr_pulse_clear(uint8_t i) {
+    if (i >= TR_COUNT) return;
+    timer_remove(&trPulseTimer[i]);
+}
+
+void tele_tr_pulse_time(uint8_t i, int16_t time) {
+    if (i >= TR_COUNT) return;
+
+    u32 time_spent = trPulseTimer[i].ticks - trPulseTimer[i].ticksRemain;
+    timer_set(&trPulseTimer[i], time);
+    if (time_spent >= time) { timer_manual(&trPulseTimer[i]); }
+    else {
+        trPulseTimer[i].ticksRemain = time - time_spent;
+    }
+}
+
+void trPulseTimer_callback(void* obj) {
+    int i = (int)obj;
+    if (i >= TR_COUNT) return;
+    timer_remove(&trPulseTimer[i]);
+    tele_tr_pulse_end(&scene_state, i);
+}
+
 void tele_cv(uint8_t i, int16_t v, uint8_t s) {
     int16_t t = v + aout[i].off;
     if (t < 0)
@@ -1236,6 +1268,11 @@ int main(void) {
     aout[1].slew = 1;
     aout[2].slew = 1;
     aout[3].slew = 1;
+
+    for (uint8_t i = 0; i < TR_COUNT; i++) {
+        trPulseTimer[i].next = NULL;
+        trPulseTimer[i].prev = NULL;
+    }
 
     init_live_mode();
     set_mode(M_LIVE);

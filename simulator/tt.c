@@ -30,6 +30,21 @@ void tele_tr(uint8_t i, int16_t v) {
     printf("\n");
 }
 
+void tele_tr_pulse(uint8_t i, int16_t time) {
+    printf("TR PULSE i:%" PRIu8 " time:%" PRId16, i, time);
+    printf("\n");
+}
+
+void tele_tr_pulse_clear(uint8_t i) {
+    printf("TR PULSE CLEAR i:%" PRIu8, i);
+    printf("\n");
+}
+
+void tele_tr_pulse_time(uint8_t i, int16_t time) {
+    printf("TR PULSE TIME i:%" PRIu8 " time:%" PRId16, i, time);
+    printf("\n");
+}
+
 void tele_cv(uint8_t i, int16_t v, uint8_t s) {
     printf("CV  i:%" PRIu8 " v:%" PRId16 " s:%" PRIu8, i, v, s);
     printf("\n");

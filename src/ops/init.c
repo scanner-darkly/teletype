@@ -144,7 +144,7 @@ static void op_INIT_TR_get(const void *NOTUSED(data), scene_state_t *ss,
         ss->variables.tr[v] = 0;
         ss->variables.tr_pol[v] = 1;
         ss->variables.tr_time[v] = 100;
-        ss->tr_pulse_timer[v] = 0;
+        tele_tr_pulse_clear(v);
         tele_tr(v, 0);
     }
 }
@@ -156,7 +156,7 @@ static void op_INIT_TR_ALL_get(const void *NOTUSED(data), scene_state_t *ss,
         ss->variables.tr[i] = 0;
         ss->variables.tr_pol[i] = 1;
         ss->variables.tr_time[i] = 100;
-        ss->tr_pulse_timer[i] = 0;
+        tele_tr_pulse_clear(i);
         tele_tr(i, 0);
     }
 }

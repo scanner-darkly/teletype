@@ -17,7 +17,6 @@ void ss_init(scene_state_t *ss) {
     ss_rand_init(ss);
     ss_midi_init(ss);
     ss->delay.count = 0;
-    for (size_t i = 0; i < TR_COUNT; i++) { ss->tr_pulse_timer[i] = 0; }
     for (size_t i = 0; i < NB_NBX_SCALES; i++) {
         ss->variables.n_scale_bits[i] = bit_reverse(0b101011010101, 12);
         ss->variables.n_scale_root[i] = 0;

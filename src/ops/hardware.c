@@ -409,6 +409,7 @@ static void op_TR_TIME_set(const void *NOTUSED(data), scene_state_t *ss,
         return;
     else if (a < 4) {
         ss->variables.tr_time[a] = b;
+        tele_tr_pulse_time(a, b);
     }
     else if (a < 20) {
         uint8_t d[] = { II_ANSIBLE_TR_TIME, a & 0x3, b >> 8, b & 0xff };
@@ -447,8 +448,8 @@ static void op_TR_PULSE_get(const void *NOTUSED(data), scene_state_t *ss,
         int16_t time = ss->variables.tr_time[a];  // pulse time
         if (time <= 0) return;  // if time <= 0 don't do anything
         ss->variables.tr[a] = ss->variables.tr_pol[a];
-        ss->tr_pulse_timer[a] = time;  // set time
         tele_tr(a, ss->variables.tr[a]);
+        tele_tr_pulse(a, time);
     }
     else if (a < 20) {
         uint8_t d[] = { II_ANSIBLE_TR_PULSE, a & 0x3 };

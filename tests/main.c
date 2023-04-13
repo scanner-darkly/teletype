@@ -17,6 +17,9 @@ uint32_t tele_get_ticks() {
 void tele_metro_updated() {}
 void tele_metro_reset() {}
 void tele_tr(uint8_t i, int16_t v) {}
+void tele_tr_pulse(uint8_t i, int16_t time) {}
+void tele_tr_pulse_clear(uint8_t i) {}
+void tele_tr_pulse_time(uint8_t i, int16_t time) {}
 void tele_cv(uint8_t i, int16_t v, uint8_t s) {}
 void tele_cv_slew(uint8_t i, int16_t v) {}
 void tele_update_adc(uint8_t force) {}

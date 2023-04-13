@@ -47,6 +47,8 @@ void tele_tick(scene_state_t *ss, uint8_t);
 
 void clear_delays(scene_state_t *ss);
 
+void tele_tr_pulse_end(scene_state_t *ss, uint8_t i);
+
 const char *tele_error(error_t);
 
 #endif

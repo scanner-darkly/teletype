@@ -18,7 +18,10 @@ bool processing_delays = false;
 // DELAY ////////////////////////////////////////////////////////
 
 void clear_delays(scene_state_t *ss) {
-    for (int16_t i = 0; i < TR_COUNT; i++) { ss->tr_pulse_timer[i] = 0; }
+    for (int16_t i = 0; i < TR_COUNT; i++) {
+        tele_tr_pulse_clear(i);
+        tele_tr_pulse_end(ss, i);
+    }
 
     for (int16_t i = 0; i < DELAY_SIZE; i++) { ss->delay.time[i] = 0; }
 
@@ -344,25 +347,11 @@ void tele_tick(scene_state_t *ss, uint8_t time) {
             }
         }
     }
+}
 
-    // process tr pulses
-    for (int16_t i = 0; i < TR_COUNT; i++) {
-        if (ss->tr_pulse_timer[i]) {
-            // prevent tr_pulse_timer from being greater than tr_time
-            int16_t tr_time = ss->variables.tr_time[i];
-            if (tr_time < 0) tr_time = 0;
-            if (ss->tr_pulse_timer[i] > tr_time)
-                ss->tr_pulse_timer[i] = tr_time;
-
-            ss->tr_pulse_timer[i] -= time;
-
-            if (ss->tr_pulse_timer[i] <= 0) {
-                ss->tr_pulse_timer[i] = 0;
-                ss->variables.tr[i] = ss->variables.tr_pol[i] == 0;
-                tele_tr(i, ss->variables.tr[i]);
-            }
-        }
-    }
+void tele_tr_pulse_end(scene_state_t *ss, uint8_t i) {
+    ss->variables.tr[i] = ss->variables.tr_pol[i] == 0;
+    tele_tr(i, ss->variables.tr[i]);
 }
 
 /////////////////////////////////////////////////////////////////
