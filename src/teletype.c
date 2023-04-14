@@ -148,8 +148,11 @@ process_result_t run_script(scene_state_t *ss, size_t script_no) {
 
 // Everything needs to call this to execute code.  An execution
 // context is required for proper operation of DEL, THIS, L, W, IF
-process_result_t run_script_with_exec_state(scene_state_t *ss, exec_state_t *es,
-                                            size_t script_no) {
+static process_result_t _run_script_with_exec_state(scene_state_t *ss,
+                                                    exec_state_t *es,
+                                                    size_t script_no,
+                                                    uint8_t line_no1,
+                                                    uint8_t line_no2) {
 #ifdef TELETYPE_PROFILE
     tele_profile_script(script_no);
 #endif
@@ -157,7 +160,9 @@ process_result_t run_script_with_exec_state(scene_state_t *ss, exec_state_t *es,
 
     es_set_script_number(es, script_no);
 
-    for (size_t i = 0; i < ss_get_script_len(ss, script_no); i++) {
+    for (size_t i = line_no1; i <= line_no2; i++) {
+        if (i >= ss_get_script_len(ss, script_no)) break;
+
         es_set_line_number(es, i);
 
         // Commented code doesn't run.
@@ -181,6 +186,40 @@ process_result_t run_script_with_exec_state(scene_state_t *ss, exec_state_t *es,
     tele_profile_script(script_no);
 #endif
     return result;
+}
+
+process_result_t run_script_with_exec_state(scene_state_t *ss, exec_state_t *es,
+                                            size_t script_no) {
+    return _run_script_with_exec_state(ss, es, script_no, 0,
+                                       SCRIPT_MAX_COMMANDS - 1);
+}
+
+process_result_t run_line_with_exec_state(scene_state_t *ss, exec_state_t *es,
+                                          size_t script_no, uint8_t line_no) {
+    return _run_script_with_exec_state(ss, es, script_no, line_no, line_no);
+}
+
+process_result_t run_fscript_with_exec_state(scene_state_t *ss,
+                                             exec_state_t *es,
+                                             size_t script_no) {
+    process_result_t output = _run_script_with_exec_state(
+        ss, es, script_no, 0, SCRIPT_MAX_COMMANDS - 1);
+    if (es_variables(es)->fresult_set) {
+        output.value = es_variables(es)->fresult;
+        output.has_value = true;
+    }
+    return output;
+}
+
+process_result_t run_fline_with_exec_state(scene_state_t *ss, exec_state_t *es,
+                                           size_t script_no, uint8_t line_no) {
+    process_result_t output =
+        _run_script_with_exec_state(ss, es, script_no, line_no, line_no);
+    if (es_variables(es)->fresult_set) {
+        output.value = es_variables(es)->fresult;
+        output.has_value = true;
+    }
+    return output;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -295,7 +334,7 @@ process_result_t process_command(scene_state_t *ss, exec_state_t *es,
 void tele_tick(scene_state_t *ss, uint8_t time) {
     // could be a while() if there is reason to expect a user to cascade moves
     // with SCRIPTs without the tick delay
-    if (ss->turtle.stepped && ss->turtle.script_number != TEMP_SCRIPT) {
+    if (ss->turtle.stepped && ss->turtle.script_number != NO_SCRIPT) {
         ss->turtle.stepped = false;
         run_script(ss, turtle_get_script(&ss->turtle));
     }
@@ -318,8 +357,8 @@ void tele_tick(scene_state_t *ss, uint8_t time) {
                 // to execute it.  This is required for THIS to be tracked, as
                 // it needs to have a script number.
                 // TODO: dynamically allocate scripts to prevent waste
-                ss_clear_script(ss, TEMP_SCRIPT);
-                ss_overwrite_script_command(ss, TEMP_SCRIPT, 0,
+                ss_clear_script(ss, DELAY_SCRIPT);
+                ss_overwrite_script_command(ss, DELAY_SCRIPT, 0,
                                             &ss->delay.commands[i]);
 
                 // We always need to execute from within an execution context
@@ -336,7 +375,7 @@ void tele_tick(scene_state_t *ss, uint8_t time) {
                 es_variables(&es)->script_number = ss->delay.origin_script[i];
                 es_variables(&es)->i = ss->delay.origin_i[i];
 
-                run_script_with_exec_state(ss, &es, TEMP_SCRIPT);
+                run_script_with_exec_state(ss, &es, DELAY_SCRIPT);
 
                 ss->delay.time[i] = 0;
                 ss->delay.count--;

@@ -354,14 +354,14 @@ void execute_line() {
         }
         memcpy(&history[0], &command, sizeof(command));
 
-        ss_clear_script(&scene_state, TEMP_SCRIPT);
-        ss_overwrite_script_command(&scene_state, TEMP_SCRIPT, 0, &command);
+        ss_clear_script(&scene_state, LIVE_SCRIPT);
+        ss_overwrite_script_command(&scene_state, LIVE_SCRIPT, 0, &command);
         exec_state_t es;
         es_init(&es);
         es_push(&es);
-        es_variables(&es)->script_number = TEMP_SCRIPT;
+        es_variables(&es)->script_number = LIVE_SCRIPT;
 
-        output = run_script_with_exec_state(&scene_state, &es, TEMP_SCRIPT);
+        output = run_script_with_exec_state(&scene_state, &es, LIVE_SCRIPT);
     }
 
     history_line = -1;

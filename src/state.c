@@ -624,8 +624,12 @@ void ss_reset_in_cal(scene_state_t *ss) {
 void es_init(exec_state_t *es) {
     es->exec_depth = 0;
     es->overflow = false;
-    for (uint8_t i = 0; i < EXEC_DEPTH; i++)
+    for (uint8_t i = 0; i < EXEC_DEPTH; i++) {
         es->variables[i].script_number = NO_SCRIPT;
+        es->variables[i].fparam1 = es->variables[i].fparam2 =
+            es->variables[i].fresult = 0;
+        es->variables[i].fresult_set = false;
+    }
 }
 
 size_t es_depth(exec_state_t *es) {
@@ -633,6 +637,10 @@ size_t es_depth(exec_state_t *es) {
 }
 
 size_t es_push(exec_state_t *es) {
+    return es_push_fparams(es, 0, 0);
+}
+
+size_t es_push_fparams(exec_state_t *es, int16_t param1, int16_t param2) {
     // I'd cache es->variables[es->exec_depth] as an optimization,
     // but the compiler will probably do it for me?
     if (es->exec_depth < EXEC_DEPTH) {
@@ -650,6 +658,8 @@ size_t es_push(exec_state_t *es) {
             es->variables[es->exec_depth].i = 0;
         }
         es->variables[es->exec_depth].breaking = false;
+        es->variables[es->exec_depth].fparam1 = param1;
+        es->variables[es->exec_depth].fparam2 = param2;
         es->exec_depth += 1;  // exec_depth = 1 at the root
     }
     else

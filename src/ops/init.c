@@ -90,13 +90,13 @@ static void op_INIT_SCENE_get(const void *NOTUSED(data), scene_state_t *ss,
 static void op_INIT_SCRIPT_get(const void *NOTUSED(data), scene_state_t *ss,
                                exec_state_t *NOTUSED(es), command_state_t *cs) {
     int16_t v = cs_pop(cs) - 1;
-    if (v >= 0 && v < TEMP_SCRIPT) ss_clear_script(ss, (size_t)v);
+    if (v >= 0 && v < EDITABLE_SCRIPT_COUNT) ss_clear_script(ss, (size_t)v);
 }
 
 static void op_INIT_SCRIPT_ALL_get(const void *NOTUSED(data), scene_state_t *ss,
                                    exec_state_t *NOTUSED(es),
                                    command_state_t *NOTUSED(cs)) {
-    for (size_t i = 0; i < TEMP_SCRIPT; i++) ss_clear_script(ss, i);
+    for (size_t i = 0; i < EDITABLE_SCRIPT_COUNT; i++) ss_clear_script(ss, i);
 }
 
 static void op_INIT_P_get(const void *NOTUSED(data), scene_state_t *ss,
@@ -175,7 +175,8 @@ static void op_INIT_TIME_get(const void *NOTUSED(data), scene_state_t *ss,
     clear_delays(ss);
     ss->variables.time = 0;
     uint32_t ticks = tele_get_ticks();
-    for (uint8_t i = 0; i < TEMP_SCRIPT; i++) ss->scripts[i].last_time = ticks;
+    for (uint8_t i = 0; i < EDITABLE_SCRIPT_COUNT; i++)
+        ss->scripts[i].last_time = ticks;
     ss->variables.time = 0;
     ss_sync_every(ss, 0);
 }

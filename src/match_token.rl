@@ -290,7 +290,7 @@
         "<>"          => { MATCH_OP(E_OP_SYM_LEFT_ANGLED_RIGHT_ANGLED); };
         ">=<"         => { MATCH_OP(E_OP_SYM_RIGHT_ANGLED_EQUAL_LEFT_ANGLED); };
         "<=>"         => { MATCH_OP(E_OP_SYM_LEFT_ANGLED_EQUAL_RIGHT_ANGLED); };
-	"!"           => { MATCH_OP(E_OP_SYM_EXCLAMATION); };
+	    "!"           => { MATCH_OP(E_OP_SYM_EXCLAMATION); };
         "<<"          => { MATCH_OP(E_OP_SYM_LEFT_ANGLED_x2); };
         ">>"          => { MATCH_OP(E_OP_SYM_RIGHT_ANGLED_x2); };
         "<<<"         => { MATCH_OP(E_OP_SYM_LEFT_ANGLED_x3); };
@@ -320,6 +320,16 @@
         "BREAK"       => { MATCH_OP(E_OP_BREAK); };
         "BRK"         => { MATCH_OP(E_OP_BRK); };
         "SYNC"        => { MATCH_OP(E_OP_SYNC); };
+        "$L"          => { MATCH_OP(E_OP_SYM_DOLLAR_L); };
+        "F$"          => { MATCH_OP(E_OP_F_SYM_DOLLAR); };
+        "F$1"         => { MATCH_OP(E_OP_F_SYM_DOLLAR1); };
+        "F$2"         => { MATCH_OP(E_OP_F_SYM_DOLLAR2); };
+        "FL"          => { MATCH_OP(E_OP_FL); };
+        "FL1"         => { MATCH_OP(E_OP_FL1); };
+        "FL2"         => { MATCH_OP(E_OP_FL2); };
+        "F1"          => { MATCH_OP(E_OP_F1); };
+        "F2"          => { MATCH_OP(E_OP_F2); };
+        "FR"          => { MATCH_OP(E_OP_FR); };
 
         # delay
         "DEL.CLR"     => { MATCH_OP(E_OP_DEL_CLR); };

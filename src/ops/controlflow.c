@@ -54,6 +54,28 @@ static void op_BREAK_get(const void *data, scene_state_t *ss, exec_state_t *es,
 static void op_SYNC_get(const void *data, scene_state_t *ss, exec_state_t *es,
                         command_state_t *cs);
 
+static void op_SYM_DOLLAR_L_get(const void *data, scene_state_t *ss,
+                                exec_state_t *es, command_state_t *cs);
+static void op_F_SYM_DOLLAR_get(const void *data, scene_state_t *ss,
+                                exec_state_t *es, command_state_t *cs);
+static void op_F_SYM_DOLLAR1_get(const void *data, scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs);
+static void op_F_SYM_DOLLAR2_get(const void *data, scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs);
+static void op_FL_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                      command_state_t *cs);
+static void op_FL1_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                       command_state_t *cs);
+static void op_FL2_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                       command_state_t *cs);
+static void op_F1_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                      command_state_t *cs);
+static void op_F2_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                      command_state_t *cs);
+static void op_FR_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                      command_state_t *cs);
+static void op_FR_set(const void *data, scene_state_t *ss, exec_state_t *es,
+                      command_state_t *cs);
 
 // clang-format off
 const tele_mod_t mod_PROB = MAKE_MOD(PROB, mod_PROB_func, 1);
@@ -78,6 +100,18 @@ const tele_op_t op_SCENE = MAKE_GET_SET_OP(SCENE, op_SCENE_get, op_SCENE_set, 0,
 const tele_op_t op_BREAK = MAKE_GET_OP(BREAK, op_BREAK_get, 0, false);
 const tele_op_t op_BRK = MAKE_ALIAS_OP(BRK, op_BREAK_get, NULL, 0, false);
 const tele_op_t op_SYNC = MAKE_GET_OP(SYNC, op_SYNC_get, 1, false);
+
+const tele_op_t op_SYM_DOLLAR_L  = MAKE_GET_OP($L, op_SYM_DOLLAR_L_get, 2, false);
+const tele_op_t op_F_SYM_DOLLAR  = MAKE_GET_OP(F$, op_F_SYM_DOLLAR_get, 1, true);
+const tele_op_t op_F_SYM_DOLLAR1 = MAKE_GET_OP(F$1, op_F_SYM_DOLLAR1_get, 2, true);
+const tele_op_t op_F_SYM_DOLLAR2 = MAKE_GET_OP(F$2, op_F_SYM_DOLLAR2_get, 3, true);
+const tele_op_t op_FL            = MAKE_GET_OP(FL, op_FL_get, 2, true);
+const tele_op_t op_FL1           = MAKE_GET_OP(FL1, op_FL1_get, 3, true);
+const tele_op_t op_FL2           = MAKE_GET_OP(FL2, op_FL2_get, 4, true);
+const tele_op_t op_F1            = MAKE_GET_OP(F1, op_F1_get, 0, true);
+const tele_op_t op_F2            = MAKE_GET_OP(F2, op_F2_get, 0, true);
+const tele_op_t op_FR            = MAKE_GET_SET_OP(FR, op_FR_get, op_FR_set, 0, true);
+
 // clang-format on
 
 static void mod_PROB_func(scene_state_t *ss, exec_state_t *es,
@@ -312,4 +346,119 @@ static void op_KILL_get(const void *NOTUSED(data), scene_state_t *ss,
 static void op_BREAK_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
                          exec_state_t *es, command_state_t *NOTUSED(cs)) {
     es_variables(es)->breaking = true;
+}
+
+static void op_SYM_DOLLAR_L_get(const void *NOTUSED(data), scene_state_t *ss,
+                                exec_state_t *es, command_state_t *cs) {
+    uint8_t script = cs_pop(cs) - 1;
+    uint8_t line = cs_pop(cs) - 1;
+    if (script >= EDITABLE_SCRIPT_COUNT) return;
+    if (line >= ss_get_script_len(ss, script)) return;
+
+    es_push(es);
+    // an overflow causes all future SCRIPT calls to fail
+    // indicates a bad user script
+    if (!es->overflow) run_line_with_exec_state(ss, es, script, line);
+    es_pop(es);
+}
+
+static int16_t function(uint8_t script, scene_state_t *ss, exec_state_t *es,
+                        int16_t param1, int16_t param2) {
+    if (script >= EDITABLE_SCRIPT_COUNT) return 0;
+
+    int16_t result = 0;
+
+    es_push_fparams(es, param1, param2);
+    if (!es->overflow) {
+        process_result_t output = run_fscript_with_exec_state(ss, es, script);
+        if (output.has_value) result = output.value;
+    }
+    es_pop(es);
+
+    return result;
+}
+
+static void op_F_SYM_DOLLAR_get(const void *NOTUSED(data), scene_state_t *ss,
+                                exec_state_t *es, command_state_t *cs) {
+    uint8_t script = cs_pop(cs) - 1;
+    cs_push(cs, function(script, ss, es, 0, 0));
+}
+
+static void op_F_SYM_DOLLAR1_get(const void *NOTUSED(data), scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs) {
+    uint8_t script = cs_pop(cs) - 1;
+    int16_t param1 = cs_pop(cs);
+    cs_push(cs, function(script, ss, es, param1, 0));
+}
+
+static void op_F_SYM_DOLLAR2_get(const void *NOTUSED(data), scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs) {
+    uint8_t script = cs_pop(cs) - 1;
+    int16_t param1 = cs_pop(cs);
+    int16_t param2 = cs_pop(cs);
+    cs_push(cs, function(script, ss, es, param1, param2));
+}
+
+static int16_t function_line(uint8_t script, uint8_t line, scene_state_t *ss,
+                             exec_state_t *es, int16_t param1, int16_t param2) {
+    if (script >= EDITABLE_SCRIPT_COUNT) return 0;
+    if (line >= ss_get_script_len(ss, script)) return 0;
+
+    int16_t result = 0;
+
+    es_push_fparams(es, param1, param2);
+    if (!es->overflow) {
+        process_result_t output =
+            run_fline_with_exec_state(ss, es, script, line);
+        if (output.has_value) result = output.value;
+    }
+    es_pop(es);
+
+    return result;
+}
+
+static void op_FL_get(const void *NOTUSED(data), scene_state_t *ss,
+                      exec_state_t *es, command_state_t *cs) {
+    uint8_t script = cs_pop(cs) - 1;
+    uint8_t line = cs_pop(cs) - 1;
+    cs_push(cs, function_line(script, line, ss, es, 0, 0));
+}
+
+static void op_FL1_get(const void *NOTUSED(data), scene_state_t *ss,
+                       exec_state_t *es, command_state_t *cs) {
+    uint8_t script = cs_pop(cs) - 1;
+    uint8_t line = cs_pop(cs) - 1;
+    int16_t param1 = cs_pop(cs);
+    cs_push(cs, function_line(script, line, ss, es, param1, 0));
+}
+
+static void op_FL2_get(const void *NOTUSED(data), scene_state_t *ss,
+                       exec_state_t *es, command_state_t *cs) {
+    uint8_t script = cs_pop(cs) - 1;
+    uint8_t line = cs_pop(cs) - 1;
+    int16_t param1 = cs_pop(cs);
+    int16_t param2 = cs_pop(cs);
+    cs_push(cs, function_line(script, line, ss, es, param1, param2));
+}
+
+static void op_F1_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
+                      exec_state_t *es, command_state_t *cs) {
+    cs_push(cs, es_variables(es)->fparam1);
+}
+
+static void op_F2_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
+                      exec_state_t *es, command_state_t *cs) {
+    cs_push(cs, es_variables(es)->fparam2);
+}
+
+static void op_FR_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
+                      exec_state_t *es, command_state_t *cs) {
+    cs_push(cs, es_variables(es)->fresult);
+}
+
+static void op_FR_set(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
+                      exec_state_t *es, command_state_t *cs) {
+    int16_t value = cs_pop(cs);
+    es_variables(es)->fresult = value;
+    es_variables(es)->fresult_set = true;
 }

@@ -380,6 +380,10 @@ typedef struct {
     uint8_t script_number;
     uint8_t line_number;
     bool delayed;
+    int16_t fparam1;
+    int16_t fparam2;
+    int16_t fresult;
+    bool fresult_set;
 } exec_vars_t;
 
 typedef struct {
@@ -391,6 +395,7 @@ typedef struct {
 extern void es_init(exec_state_t *es);
 extern size_t es_depth(exec_state_t *es);
 extern size_t es_push(exec_state_t *es);
+extern size_t es_push_fparams(exec_state_t *es, int16_t param1, int16_t param2);
 extern size_t es_pop(exec_state_t *es);
 extern void es_set_script_number(exec_state_t *es, uint8_t script_number);
 extern void es_set_line_number(exec_state_t *es, uint8_t line_number);

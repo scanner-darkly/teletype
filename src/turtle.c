@@ -9,7 +9,7 @@ void turtle_init(scene_turtle_t *st) {
                         .heading = 180,
                         .speed = 100,
                         .stepped = false,
-                        .script_number = TEMP_SCRIPT };
+                        .script_number = NO_SCRIPT };
     memcpy(st, &t, sizeof(t));
     turtle_set_x(st, 0);
     turtle_set_y(st, 0);
@@ -257,7 +257,7 @@ void turtle_set_speed(scene_turtle_t *st, int16_t v) {
 
 void turtle_set_script(scene_turtle_t *st, uint8_t sn) {
     if (sn >= EDITABLE_SCRIPT_COUNT)
-        st->script_number = TEMP_SCRIPT;
+        st->script_number = NO_SCRIPT;
     else
         st->script_number = sn;
     st->stepped = false;
