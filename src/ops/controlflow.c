@@ -54,23 +54,27 @@ static void op_BREAK_get(const void *data, scene_state_t *ss, exec_state_t *es,
 static void op_SYNC_get(const void *data, scene_state_t *ss, exec_state_t *es,
                         command_state_t *cs);
 
+static void op_SYM_DOLLAR_F_get(const void *data, scene_state_t *ss,
+                                exec_state_t *es, command_state_t *cs);
+static void op_SYM_DOLLAR_F1_get(const void *data, scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs);
+static void op_SYM_DOLLAR_F2_get(const void *data, scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs);
 static void op_SYM_DOLLAR_L_get(const void *data, scene_state_t *ss,
                                 exec_state_t *es, command_state_t *cs);
-static void op_F_SYM_DOLLAR_get(const void *data, scene_state_t *ss,
+static void op_SYM_DOLLAR_L1_get(const void *data, scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs);
+static void op_SYM_DOLLAR_L2_get(const void *data, scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs);
+static void op_SYM_DOLLAR_S_get(const void *data, scene_state_t *ss,
                                 exec_state_t *es, command_state_t *cs);
-static void op_F_SYM_DOLLAR1_get(const void *data, scene_state_t *ss,
+static void op_SYM_DOLLAR_S1_get(const void *data, scene_state_t *ss,
                                  exec_state_t *es, command_state_t *cs);
-static void op_F_SYM_DOLLAR2_get(const void *data, scene_state_t *ss,
+static void op_SYM_DOLLAR_S2_get(const void *data, scene_state_t *ss,
                                  exec_state_t *es, command_state_t *cs);
-static void op_FL_get(const void *data, scene_state_t *ss, exec_state_t *es,
+static void op_I1_get(const void *data, scene_state_t *ss, exec_state_t *es,
                       command_state_t *cs);
-static void op_FL1_get(const void *data, scene_state_t *ss, exec_state_t *es,
-                       command_state_t *cs);
-static void op_FL2_get(const void *data, scene_state_t *ss, exec_state_t *es,
-                       command_state_t *cs);
-static void op_F1_get(const void *data, scene_state_t *ss, exec_state_t *es,
-                      command_state_t *cs);
-static void op_F2_get(const void *data, scene_state_t *ss, exec_state_t *es,
+static void op_I2_get(const void *data, scene_state_t *ss, exec_state_t *es,
                       command_state_t *cs);
 static void op_FR_get(const void *data, scene_state_t *ss, exec_state_t *es,
                       command_state_t *cs);
@@ -101,15 +105,17 @@ const tele_op_t op_BREAK = MAKE_GET_OP(BREAK, op_BREAK_get, 0, false);
 const tele_op_t op_BRK = MAKE_ALIAS_OP(BRK, op_BREAK_get, NULL, 0, false);
 const tele_op_t op_SYNC = MAKE_GET_OP(SYNC, op_SYNC_get, 1, false);
 
-const tele_op_t op_SYM_DOLLAR_L  = MAKE_GET_OP($L, op_SYM_DOLLAR_L_get, 2, false);
-const tele_op_t op_F_SYM_DOLLAR  = MAKE_GET_OP(F$, op_F_SYM_DOLLAR_get, 1, true);
-const tele_op_t op_F_SYM_DOLLAR1 = MAKE_GET_OP(F$1, op_F_SYM_DOLLAR1_get, 2, true);
-const tele_op_t op_F_SYM_DOLLAR2 = MAKE_GET_OP(F$2, op_F_SYM_DOLLAR2_get, 3, true);
-const tele_op_t op_FL            = MAKE_GET_OP(FL, op_FL_get, 2, true);
-const tele_op_t op_FL1           = MAKE_GET_OP(FL1, op_FL1_get, 3, true);
-const tele_op_t op_FL2           = MAKE_GET_OP(FL2, op_FL2_get, 4, true);
-const tele_op_t op_F1            = MAKE_GET_OP(F1, op_F1_get, 0, true);
-const tele_op_t op_F2            = MAKE_GET_OP(F2, op_F2_get, 0, true);
+const tele_op_t op_SYM_DOLLAR_F  = MAKE_GET_OP($F,  op_SYM_DOLLAR_F_get, 1, true);
+const tele_op_t op_SYM_DOLLAR_F1 = MAKE_GET_OP($F1, op_SYM_DOLLAR_F1_get, 2, true);
+const tele_op_t op_SYM_DOLLAR_F2 = MAKE_GET_OP($F2, op_SYM_DOLLAR_F2_get, 3, true);
+const tele_op_t op_SYM_DOLLAR_L  = MAKE_GET_OP($L,  op_SYM_DOLLAR_L_get, 2, true);
+const tele_op_t op_SYM_DOLLAR_L1 = MAKE_GET_OP($L1, op_SYM_DOLLAR_L1_get, 3, true);
+const tele_op_t op_SYM_DOLLAR_L2 = MAKE_GET_OP($L2, op_SYM_DOLLAR_L2_get, 4, true);
+const tele_op_t op_SYM_DOLLAR_S  = MAKE_GET_OP($S,  op_SYM_DOLLAR_S_get, 1, true);
+const tele_op_t op_SYM_DOLLAR_S1 = MAKE_GET_OP($S1, op_SYM_DOLLAR_S1_get, 2, true);
+const tele_op_t op_SYM_DOLLAR_S2 = MAKE_GET_OP($S2, op_SYM_DOLLAR_S2_get, 3, true);
+const tele_op_t op_I1            = MAKE_GET_OP(I1,  op_I1_get, 0, true);
+const tele_op_t op_I2            = MAKE_GET_OP(I2,  op_I2_get, 0, true);
 const tele_op_t op_FR            = MAKE_GET_SET_OP(FR, op_FR_get, op_FR_set, 0, true);
 
 // clang-format on
@@ -348,22 +354,9 @@ static void op_BREAK_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
     es_variables(es)->breaking = true;
 }
 
-static void op_SYM_DOLLAR_L_get(const void *NOTUSED(data), scene_state_t *ss,
-                                exec_state_t *es, command_state_t *cs) {
-    uint8_t script = cs_pop(cs) - 1;
-    uint8_t line = cs_pop(cs) - 1;
-    if (script >= EDITABLE_SCRIPT_COUNT) return;
-    if (line >= ss_get_script_len(ss, script)) return;
-
-    es_push(es);
-    // an overflow causes all future SCRIPT calls to fail
-    // indicates a bad user script
-    if (!es->overflow) run_line_with_exec_state(ss, es, script, line);
-    es_pop(es);
-}
-
-static int16_t function(uint8_t script, scene_state_t *ss, exec_state_t *es,
-                        int16_t param1, int16_t param2) {
+static int16_t execute_function(uint8_t script, scene_state_t *ss,
+                                exec_state_t *es, int16_t param1,
+                                int16_t param2) {
     if (script >= EDITABLE_SCRIPT_COUNT) return 0;
 
     int16_t result = 0;
@@ -378,29 +371,9 @@ static int16_t function(uint8_t script, scene_state_t *ss, exec_state_t *es,
     return result;
 }
 
-static void op_F_SYM_DOLLAR_get(const void *NOTUSED(data), scene_state_t *ss,
-                                exec_state_t *es, command_state_t *cs) {
-    uint8_t script = cs_pop(cs) - 1;
-    cs_push(cs, function(script, ss, es, 0, 0));
-}
-
-static void op_F_SYM_DOLLAR1_get(const void *NOTUSED(data), scene_state_t *ss,
-                                 exec_state_t *es, command_state_t *cs) {
-    uint8_t script = cs_pop(cs) - 1;
-    int16_t param1 = cs_pop(cs);
-    cs_push(cs, function(script, ss, es, param1, 0));
-}
-
-static void op_F_SYM_DOLLAR2_get(const void *NOTUSED(data), scene_state_t *ss,
-                                 exec_state_t *es, command_state_t *cs) {
-    uint8_t script = cs_pop(cs) - 1;
-    int16_t param1 = cs_pop(cs);
-    int16_t param2 = cs_pop(cs);
-    cs_push(cs, function(script, ss, es, param1, param2));
-}
-
-static int16_t function_line(uint8_t script, uint8_t line, scene_state_t *ss,
-                             exec_state_t *es, int16_t param1, int16_t param2) {
+static int16_t execute_function_line(uint8_t script, uint8_t line,
+                                     scene_state_t *ss, exec_state_t *es,
+                                     int16_t param1, int16_t param2) {
     if (script >= EDITABLE_SCRIPT_COUNT) return 0;
     if (line >= ss_get_script_len(ss, script)) return 0;
 
@@ -417,36 +390,80 @@ static int16_t function_line(uint8_t script, uint8_t line, scene_state_t *ss,
     return result;
 }
 
-static void op_FL_get(const void *NOTUSED(data), scene_state_t *ss,
-                      exec_state_t *es, command_state_t *cs) {
+static void op_SYM_DOLLAR_F_get(const void *NOTUSED(data), scene_state_t *ss,
+                                exec_state_t *es, command_state_t *cs) {
     uint8_t script = cs_pop(cs) - 1;
-    uint8_t line = cs_pop(cs) - 1;
-    cs_push(cs, function_line(script, line, ss, es, 0, 0));
+    cs_push(cs, execute_function(script, ss, es, 0, 0));
 }
 
-static void op_FL1_get(const void *NOTUSED(data), scene_state_t *ss,
-                       exec_state_t *es, command_state_t *cs) {
+static void op_SYM_DOLLAR_F1_get(const void *NOTUSED(data), scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs) {
+    uint8_t script = cs_pop(cs) - 1;
+    int16_t param1 = cs_pop(cs);
+    cs_push(cs, execute_function(script, ss, es, param1, 0));
+}
+
+static void op_SYM_DOLLAR_F2_get(const void *NOTUSED(data), scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs) {
+    uint8_t script = cs_pop(cs) - 1;
+    int16_t param1 = cs_pop(cs);
+    int16_t param2 = cs_pop(cs);
+    cs_push(cs, execute_function(script, ss, es, param1, param2));
+}
+
+static void op_SYM_DOLLAR_L_get(const void *NOTUSED(data), scene_state_t *ss,
+                                exec_state_t *es, command_state_t *cs) {
+    uint8_t script = cs_pop(cs) - 1;
+    uint8_t line = cs_pop(cs) - 1;
+    cs_push(cs, execute_function_line(script, line, ss, es, 0, 0));
+}
+
+static void op_SYM_DOLLAR_L1_get(const void *NOTUSED(data), scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs) {
     uint8_t script = cs_pop(cs) - 1;
     uint8_t line = cs_pop(cs) - 1;
     int16_t param1 = cs_pop(cs);
-    cs_push(cs, function_line(script, line, ss, es, param1, 0));
+    cs_push(cs, execute_function_line(script, line, ss, es, param1, 0));
 }
 
-static void op_FL2_get(const void *NOTUSED(data), scene_state_t *ss,
-                       exec_state_t *es, command_state_t *cs) {
+static void op_SYM_DOLLAR_L2_get(const void *NOTUSED(data), scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs) {
     uint8_t script = cs_pop(cs) - 1;
     uint8_t line = cs_pop(cs) - 1;
     int16_t param1 = cs_pop(cs);
     int16_t param2 = cs_pop(cs);
-    cs_push(cs, function_line(script, line, ss, es, param1, param2));
+    cs_push(cs, execute_function_line(script, line, ss, es, param1, param2));
 }
 
-static void op_F1_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
+static void op_SYM_DOLLAR_S_get(const void *NOTUSED(data), scene_state_t *ss,
+                                exec_state_t *es, command_state_t *cs) {
+    uint8_t script = es_variables(es)->script_number;
+    uint8_t line = cs_pop(cs) - 1;
+    cs_push(cs, execute_function_line(script, line, ss, es, 0, 0));
+}
+
+static void op_SYM_DOLLAR_S1_get(const void *NOTUSED(data), scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs) {
+    uint8_t script = es_variables(es)->script_number;
+    uint8_t line = cs_pop(cs) - 1;
+    int16_t param1 = cs_pop(cs);
+    cs_push(cs, execute_function_line(script, line, ss, es, param1, 0));
+}
+
+static void op_SYM_DOLLAR_S2_get(const void *NOTUSED(data), scene_state_t *ss,
+                                 exec_state_t *es, command_state_t *cs) {
+    uint8_t script = es_variables(es)->script_number;
+    uint8_t line = cs_pop(cs) - 1;
+    int16_t param1 = cs_pop(cs);
+    int16_t param2 = cs_pop(cs);
+    cs_push(cs, execute_function_line(script, line, ss, es, param1, param2));
+}
+static void op_I1_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
                       exec_state_t *es, command_state_t *cs) {
     cs_push(cs, es_variables(es)->fparam1);
 }
 
-static void op_F2_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
+static void op_I2_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
                       exec_state_t *es, command_state_t *cs) {
     cs_push(cs, es_variables(es)->fparam2);
 }

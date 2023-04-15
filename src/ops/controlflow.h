@@ -26,15 +26,17 @@ extern const tele_op_t op_BREAK;
 extern const tele_op_t op_BRK;
 extern const tele_op_t op_SYNC;
 
+extern const tele_op_t op_SYM_DOLLAR_F;
+extern const tele_op_t op_SYM_DOLLAR_F1;
+extern const tele_op_t op_SYM_DOLLAR_F2;
 extern const tele_op_t op_SYM_DOLLAR_L;
-extern const tele_op_t op_F_SYM_DOLLAR;
-extern const tele_op_t op_F_SYM_DOLLAR1;
-extern const tele_op_t op_F_SYM_DOLLAR2;
-extern const tele_op_t op_FL;
-extern const tele_op_t op_FL1;
-extern const tele_op_t op_FL2;
-extern const tele_op_t op_F1;
-extern const tele_op_t op_F2;
+extern const tele_op_t op_SYM_DOLLAR_L1;
+extern const tele_op_t op_SYM_DOLLAR_L2;
+extern const tele_op_t op_SYM_DOLLAR_S;
+extern const tele_op_t op_SYM_DOLLAR_S1;
+extern const tele_op_t op_SYM_DOLLAR_S2;
+extern const tele_op_t op_I1;
+extern const tele_op_t op_I2;
 extern const tele_op_t op_FR;
 
 #endif

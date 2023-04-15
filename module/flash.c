@@ -53,7 +53,7 @@ void flash_prepare() {
         int confirm = 1;
         uint32_t counter = 0;
         int toggle = 0;
-#define TIMEOUT 50000
+#define TIMEOUT 100000
         while (confirm == 1 && (++counter < TIMEOUT)) {
             confirm = gpio_get_pin_value(NMI);
             if ((counter % 1000) == 0) {

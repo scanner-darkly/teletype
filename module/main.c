@@ -1204,11 +1204,16 @@ int main(void) {
     if (is_flash_fresh()) {
         char s[36];
         strcpy(s, "SCENES WILL BE OVERWRITTEN!");
+        region_fill(&line[4], 0);
+        font_string_region_clip(&line[4], s, 0, 0, 0x4, 0);
+        region_draw(&line[4]);
+
+        strcpy(s, "PRESS ONLY IF YOU ARE");
         region_fill(&line[5], 0);
         font_string_region_clip(&line[5], s, 0, 0, 0x4, 0);
         region_draw(&line[5]);
 
-        strcpy(s, "PRESS TO CONFIRM");
+        strcpy(s, "UPDATING FIRMWARE");
         region_fill(&line[6], 0);
         font_string_region_clip(&line[6], s, 0, 0, 0x4, 0);
         region_draw(&line[6]);
