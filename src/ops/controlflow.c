@@ -306,8 +306,10 @@ static void op_SCRIPT_set(const void *NOTUSED(data), scene_state_t *ss,
     es_push(es);
     // an overflow causes all future SCRIPT calls to fail
     // indicates a bad user script
-    if (!es->overflow) run_script_with_exec_state(ss, es, a);
-    es_pop(es);
+    if (!es->overflow) {
+        run_script_with_exec_state(ss, es, a);
+        es_pop(es);
+    }
 }
 
 static void op_SCRIPT_POL_get(const void *NOTUSED(data), scene_state_t *ss,
@@ -365,8 +367,8 @@ static int16_t execute_function(uint8_t script, scene_state_t *ss,
     if (!es->overflow) {
         process_result_t output = run_fscript_with_exec_state(ss, es, script);
         if (output.has_value) result = output.value;
+        es_pop(es);
     }
-    es_pop(es);
 
     return result;
 }
@@ -384,8 +386,8 @@ static int16_t execute_function_line(uint8_t script, uint8_t line,
         process_result_t output =
             run_fline_with_exec_state(ss, es, script, line);
         if (output.has_value) result = output.value;
+        es_pop(es);
     }
-    es_pop(es);
 
     return result;
 }

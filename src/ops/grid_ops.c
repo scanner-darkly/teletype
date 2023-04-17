@@ -746,15 +746,18 @@ static void op_G_BTN_PR_get(const void *NOTUSED(data), scene_state_t *ss,
 
     if (GBC.script != -1) {
         es_push(es);
-        if (!es->overflow) run_script_with_exec_state(ss, es, GBC.script);
-        es_pop(es);
+        if (!es->overflow) {
+            run_script_with_exec_state(ss, es, GBC.script);
+            es_pop(es);
+        }
     }
 
     if (SG.group[GBC.group].script != -1) {
         es_push(es);
-        if (!es->overflow)
+        if (!es->overflow) {
             run_script_with_exec_state(ss, es, SG.group[GBC.group].script);
-        es_pop(es);
+            es_pop(es);
+        }
     }
 
     SG.scr_dirty = SG.grid_dirty = 1;
@@ -1298,15 +1301,18 @@ static void op_G_FDR_PR_get(const void *NOTUSED(data), scene_state_t *ss,
 
     if (GFC.script != -1) {
         es_push(es);
-        if (!es->overflow) run_script_with_exec_state(ss, es, GFC.script);
-        es_pop(es);
+        if (!es->overflow) {
+            run_script_with_exec_state(ss, es, GFC.script);
+            es_pop(es);
+        }
     }
 
     if (SG.group[GFC.group].script != -1) {
         es_push(es);
-        if (!es->overflow)
+        if (!es->overflow) {
             run_script_with_exec_state(ss, es, SG.group[GFC.group].script);
-        es_pop(es);
+            es_pop(es);
+        }
     }
 
     SG.scr_dirty = SG.grid_dirty = 1;
