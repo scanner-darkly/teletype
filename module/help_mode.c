@@ -281,7 +281,7 @@ const char* help4[HELP4_LENGTH] = { "4/17 DATA AND TABLES",
                                     "   S = STEP (0-15)"                                     
                                     };
 
-#define HELP5_LENGTH 128
+#define HELP5_LENGTH 130
 const char* help5[HELP5_LENGTH] = { "5/17 OPERATORS",
                                     " ",
                                     "RAND A|RANDOM 0 - A",
@@ -341,6 +341,8 @@ const char* help5[HELP5_LENGTH] = { "5/17 OPERATORS",
                                     "WRAP A B C|WRAP A AROUND B-C",
                                     "SCALE A B X Y I",
                                     "    SCALE I FROM A..B TO X..Y",
+                                    "SCALE0 A B I",
+                                    "    SCALE I FROM 0..A TO 0..B",
                                     "QT A B|QUANTIZE A TO B*X",
                                     "QT.S X R S|QUANTIZE TO SCALE",
                                     "   X = INPUT *",

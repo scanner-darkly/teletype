@@ -243,6 +243,8 @@
         "JI"          => { MATCH_OP(E_OP_JI); };
         "SCALE"       => { MATCH_OP(E_OP_SCALE); };
         "SCL"         => { MATCH_OP(E_OP_SCL); };
+        "SCALE0"      => { MATCH_OP(E_OP_SCALE0); };
+        "SCL0"        => { MATCH_OP(E_OP_SCL0); };
         "N"           => { MATCH_OP(E_OP_N); };
         "VN"          => { MATCH_OP(E_OP_VN); };
         "HZ"          => { MATCH_OP(E_OP_HZ); };

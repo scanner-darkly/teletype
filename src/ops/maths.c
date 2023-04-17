@@ -111,6 +111,8 @@ static void op_JI_get(const void *data, scene_state_t *ss, exec_state_t *es,
                       command_state_t *cs);
 static void op_SCALE_get(const void *data, scene_state_t *ss, exec_state_t *es,
                          command_state_t *cs);
+static void op_SCALE0_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                          command_state_t *cs);
 static void op_N_get(const void *data, scene_state_t *ss, exec_state_t *es,
                      command_state_t *cs);
 static void op_VN_get(const void *data, scene_state_t *ss, exec_state_t *es,
@@ -233,6 +235,8 @@ const tele_op_t op_OR4   = MAKE_GET_OP(OR4     , op_OR4_get     , 4, true);
 const tele_op_t op_JI    = MAKE_GET_OP(JI      , op_JI_get      , 2, true);
 const tele_op_t op_SCALE = MAKE_GET_OP(SCALE   , op_SCALE_get   , 5, true);
 const tele_op_t op_SCL   = MAKE_GET_OP(SCL     , op_SCALE_get   , 5, true);
+const tele_op_t op_SCALE0 = MAKE_GET_OP(SCALE0 , op_SCALE0_get  , 3, true);
+const tele_op_t op_SCL0  = MAKE_GET_OP(SCL0    , op_SCALE0_get  , 3, true);
 const tele_op_t op_N     = MAKE_GET_OP(N       , op_N_get       , 1, true);
 const tele_op_t op_VN    = MAKE_GET_OP(VN      , op_VN_get      , 1, true);
 const tele_op_t op_HZ    = MAKE_GET_OP(HZ      , op_HZ_get      , 1, true);
@@ -970,6 +974,26 @@ static void op_SCALE_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
     cs_push(cs, result + x);
 }
 
+static void op_SCALE0_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
+                          exec_state_t *NOTUSED(es), command_state_t *cs) {
+    int32_t b, y, i;
+    int32_t a = 0;
+    b = cs_pop(cs);
+    int32_t x = 0;
+    y = cs_pop(cs);
+    i = cs_pop(cs);
+
+    if ((b - a) == 0) {
+        cs_push(cs, 0);
+        return;
+    }
+
+    int32_t result = (i - a) * (y - x) * 2 / (b - a);
+    result = result / 2 + (result & 1);  // rounding
+
+    cs_push(cs, result + x);
+}
+
 static void op_N_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
                      exec_state_t *NOTUSED(es), command_state_t *cs) {
     int16_t a = cs_pop(cs);
@@ -1256,7 +1280,7 @@ static void op_BPM_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
     if (a < 2) a = 2;
     if (a > 1000) a = 1000;
     ret = ((((uint32_t)(1 << 31)) / ((a << 20) / 60)) * 1000) >> 10;
-    ret = ret / 2 + (ret & 1); // rounding
+    ret = ret / 2 + (ret & 1);  // rounding
     cs_push(cs, (int16_t)ret);
 }
 

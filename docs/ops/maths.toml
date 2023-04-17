@@ -269,6 +269,11 @@ prototype = "SCALE a b x y i"
 aliases = ["SCL"]
 short = "scale `i` from range `a` to `b` to range `x` to `y`, i.e. `i * (y - x) / (b - a)`"
 
+[SCALE0]
+prototype = "SCALE a b i"
+aliases = ["SCL0"]
+short = "scale `i` from range `0` to `a` to range `0` to `b`"
+
 [ER]
 prototype = "ER f l i"
 short = "Euclidean rhythm, `f` is fill (`1-32`), `l` is length (`1-32`) and `i` is step (any value), returns `0` or `1`"

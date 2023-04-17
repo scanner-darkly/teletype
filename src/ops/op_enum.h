@@ -216,6 +216,8 @@ typedef enum {
     E_OP_JI,
     E_OP_SCALE,
     E_OP_SCL,
+    E_OP_SCALE0,
+    E_OP_SCL0,
     E_OP_N,
     E_OP_VN,
     E_OP_HZ,

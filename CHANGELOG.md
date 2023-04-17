@@ -24,6 +24,7 @@
 - **FIX**: fix MIDI IN ops channel number being off by 1
 - **FIX**: improve `TR.P` accuracy
 - **FIX**: fix `KILL` not stopping TR pulses in progress
+- **NEW**: new op: `SCALE0` / `SCL0`
 
 ## v4.0.0
 
