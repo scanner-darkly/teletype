@@ -181,6 +181,156 @@ Get or set the trigger polarity of script `x`, determining which trigger edges t
 3: either edge
 """
 
+[$F]
+prototype = "$F script"
+short = "execute script as a function"
+description = """
+This op will execute a script similarly to `SCRIPT` op but it will also return a value,
+which means you can define a script that calculates something and then use it in an expression.
+To set the return value, either place an expression at the end of the script without
+assigning it to anything or assign it to the special function return variable `FR`. If you do
+both, `FR` will be used, and if you don't do either, zero will be returned.
+
+Let's say you update script 1 to return the square of `X`: `* X X` (which you could also
+write as `FR * X X`). Then you can use it in an expression like this: `A + A $F 1`.
+
+This op can save space if you have a calculation that is used in multiple places.
+Other than returning a value, a function script isn't different from a regular script
+and can perform other actions in addition to calculating something, including calling
+other scripts. The same limit of 8 maximum nested calls applies here to prevent infinite loops.
+
+If you need to be able to pass parameters into your function, use `$F1` or `$F2` ops.
+"""
+
+[$F1]
+prototype = "$F1 script param"
+short = "execute script as a function with 1 parameter"
+description = """
+Same as `$F` but you can also pass a single parameter into the function. Inside the function
+script you can get the parameter using `I1` op.
+
+Let's say you create a script that returns the square of the passed parameter: `FR * I1 I1`.
+You can then calculate the square of a number by executing `$F1 value`.
+
+See the description of `$F` op for more details on executing scripts as functions.
+"""
+
+[$F2]
+prototype = "$F2 script param1 param2"
+short = "execute script as a function with 2 parameters"
+description = """
+Same as `$F` but you can also pass two parameters into a function. Inside the function script
+you can get them using `I1` and `I2` ops.
+
+Let's say you create a script that returns a randomly selected value out of the two
+provided values: `FR ? TOSS I1 I2`. You can then save space by using `$F2 1 X Y` instead of
+`? TOSS X Y`. More importantly, you could use it in multiple places, and if you later
+want to change the calculation to something else, you just need to update the function script.
+
+See the description of `$F` op for more details on executing scripts as functions.
+"""
+
+[$L]
+prototype = "$L script line"
+short = "execute script line"
+description = """
+This op executes the specified script line. This allows you to use a script as a library of sorts,
+where each line does something different, so you can use the same script for multiple purposes.
+It also allows you to use free lines in a script to extend another script.
+
+This op behaves similarly to `$F` op in that it can be used as a function in an expression
+by setting the return value with `FR`. Let's say the first line in script 1 is this: `FR * X X`.
+You can then get the square of `X` by executing `$L 1 1`.
+
+If you want to use it as a function and you need to pass some parameters into it, use
+`$L1` / `$L2` ops.
+
+This op is also useful if you have a loop that doesn't fit on one line - define the line
+later in the script and then reference it in the loop:
+
+```
+#1
+L 1 6: A + A $L 1 3
+BREAK
+SCALE X Y C D I
+```
+
+Don't forget to add `BREAK` before the line so that it's not executed when the whole script
+is executed. If you use this technique, you can also save space by using `$S` op which executes
+a line within the same script.
+"""
+
+[$L1]
+prototype = "$L1 script line param"
+short = "execute script line as a function with 1 parameter"
+description = """
+Execute the specified script line as a function that takes 1 parameter. See the description of
+`$L` and `$F1` ops for more details.
+"""
+
+[$L2]
+prototype = "$L2 script line param1 param2"
+short = "execute script line as a function with 2 parameters"
+description = """
+Execute the specified script line as a function that takes 2 parameters. See the description of
+`$L` and `$F2` ops for more details.
+"""
+
+[$S]
+prototype = "$S line"
+short = "execute script line within the same script as a function"
+description = """
+This is exactly the same as `$L $ line` but saves you space on not having to specify the script
+number if the line you want to execute is within the same script.
+
+See the description of `$L` for more details.
+"""
+
+[$S1]
+prototype = "$S1 line param"
+short = "execute script line within the same script as a function with 1 parameter"
+description = """
+This is exactly the same as `$L1 $ line param` but saves you space on not having to specify
+the script number if the line you want to execute is within the same script.
+
+See the description of `$L1` for more details.
+"""
+
+[$S2]
+prototype = "$S2 line param1 param2"
+short = "execute script line within the same script as a function with 2 parameters"
+description = """
+This is exactly the same as `$L2 $ line param1 param2` but saves you space on not having
+to specify the script number if the line you want to execute is within the same script.
+
+See the description of `$L2` for more details.
+"""
+
+[I1]
+prototype = "I1"
+short = "get the first parameter when executing a script as a function"
+description = """
+This op returns the first parameter when a script is called as a function using
+`$F1` / `$F2` / `$L1` / `$L2` / `$S1` / `$S2` ops. If the script is called
+using other ops, this op will return zero.
+"""
+
+[I2]
+prototype = "I2"
+short = "get the second parameter when executing a script as a function"
+description = """
+This op returns the second parameter when a script is called as a function using
+`$F2` / `$L2` / `$S2` ops. If the script is called using other ops, this op will return zero.
+"""
+
+[FR]
+prototype = "FR"
+prototype_set = "FR x"
+short = "get/set the return value when a script is called as a function"
+description = """
+Use this op to get or set the return value in a script that is called as a function.
+"""
+
 [SCENE]
 prototype = "SCENE"
 prototype_set = "SCENE x"

@@ -23,6 +23,7 @@
 - **FIX**: improve `TR.P` accuracy
 - **FIX**: fix `KILL` not stopping TR pulses in progress
 - **NEW**: new op: `SCALE0` / `SCL0`
+- **NEW**: new ops: `$F`, `$F1`, `$F2`, `$L`, `$L1`, `$L2`, `$S`, `$S1`, `$S2`, `I1`, `I2`, `FR`
 
 ## v4.0.0
 
