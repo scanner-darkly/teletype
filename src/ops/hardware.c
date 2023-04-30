@@ -77,7 +77,14 @@ static void op_PRINT_get(const void *data, scene_state_t *ss, exec_state_t *es,
                          command_state_t *cs);
 static void op_PRINT_set(const void *data, scene_state_t *ss, exec_state_t *es,
                          command_state_t *cs);
-
+static void op_CLR_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                         command_state_t *cs);
+static void op_LED_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                         command_state_t *cs);
+static void op_REC_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                         command_state_t *cs);
+static void op_RCT_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                         command_state_t *cs);
 
 // clang-format off
 const tele_op_t op_CV       = MAKE_GET_SET_OP(CV      , op_CV_get      , op_CV_set     , 1, true);
@@ -114,6 +121,10 @@ const tele_op_t op_LIVE_VARS     = MAKE_GET_OP (LIVE.VARS, op_LIVE_VARS_get, 0, 
 const tele_op_t op_LIVE_V        = MAKE_ALIAS_OP (LIVE.V, op_LIVE_VARS_get, NULL, 0, false);
 const tele_op_t op_PRINT         = MAKE_GET_SET_OP (PRINT, op_PRINT_get, op_PRINT_set, 1, true);
 const tele_op_t op_PRT           = MAKE_ALIAS_OP (PRT, op_PRINT_get, op_PRINT_set, 1, true);
+const tele_op_t op_CLR           = MAKE_GET_OP (CLR, op_CLR_get, 0, false);
+const tele_op_t op_LED           = MAKE_GET_OP (LED, op_LED_get, 3, false);
+const tele_op_t op_REC           = MAKE_GET_OP (REC, op_REC_get, 6, false);
+const tele_op_t op_RCT           = MAKE_GET_OP (RCT, op_RCT_get, 6, false);
 // clang-format on
 
 static void op_CV_get(const void *NOTUSED(data), scene_state_t *ss,
@@ -559,4 +570,38 @@ static void op_PRINT_set(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
     int16_t index = cs_pop(cs);
     int16_t value = cs_pop(cs);
     print_dashboard_value(index - 1, value);
+}
+
+static void op_CLR_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
+                         exec_state_t *NOTUSED(es), command_state_t *cs) {
+    screen_clr();
+}
+
+static void op_LED_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
+                         exec_state_t *NOTUSED(es), command_state_t *cs) {
+    uint16_t x = cs_pop(cs);
+    uint16_t y = cs_pop(cs);
+    uint8_t level = cs_pop(cs);
+    screen_led(x, y, level);
+}
+
+static void op_REC_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
+                         exec_state_t *NOTUSED(es), command_state_t *cs) {
+    uint16_t x = cs_pop(cs);
+    uint16_t y = cs_pop(cs);
+    uint16_t w = cs_pop(cs);
+    uint16_t h = cs_pop(cs);
+    uint8_t fill = cs_pop(cs);
+    uint8_t border = cs_pop(cs);
+    screen_rec(x, y, w, h, fill, border);
+}
+static void op_RCT_get(const void *NOTUSED(data), scene_state_t *NOTUSED(ss),
+                         exec_state_t *NOTUSED(es), command_state_t *cs) {
+    uint16_t x1 = cs_pop(cs);
+    uint16_t y1 = cs_pop(cs);
+    uint16_t x2 = cs_pop(cs);
+    uint16_t y2 = cs_pop(cs);
+    uint8_t fill = cs_pop(cs);
+    uint8_t border = cs_pop(cs);
+    screen_rct(x1, y1, x2, y2, fill, border);
 }

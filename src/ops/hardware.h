@@ -37,5 +37,9 @@ extern const tele_op_t op_LIVE_VARS;
 extern const tele_op_t op_LIVE_V;
 extern const tele_op_t op_PRINT;
 extern const tele_op_t op_PRT;
+extern const tele_op_t op_CLR;
+extern const tele_op_t op_LED;
+extern const tele_op_t op_REC;
+extern const tele_op_t op_RCT;
 
 #endif

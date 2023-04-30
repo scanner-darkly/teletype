@@ -72,4 +72,9 @@ extern int16_t get_dashboard_value(uint8_t index);
 
 extern void reset_midi_counter(void);
 
+extern void screen_clr(void);
+extern void screen_led(uint16_t x, uint16_t y, uint8_t level);
+extern void screen_rec(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t fill, uint8_t border);
+extern void screen_rct(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t fill, uint8_t border);
+
 #endif

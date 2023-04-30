@@ -189,7 +189,11 @@
         "LIVE.V"      => { MATCH_OP(E_OP_LIVE_V); };
         "PRINT"       => { MATCH_OP(E_OP_PRINT); };
         "PRT"         => { MATCH_OP(E_OP_PRT); };
-
+        "CLR"         => { MATCH_OP(E_OP_CLR); };
+        "LED"         => { MATCH_OP(E_OP_LED); };
+        "REC"         => { MATCH_OP(E_OP_REC); };
+        "RCT"         => { MATCH_OP(E_OP_RCT); };
+ 
         # maths
         "ADD"         => { MATCH_OP(E_OP_ADD); };
         "SUB"         => { MATCH_OP(E_OP_SUB); };

@@ -515,7 +515,9 @@ void handler_ScreenRefresh(int32_t data) {
     profile_update(&prof_ScreenRefresh);
 #endif
     uint8_t screen_dirty = 0;
-
+    
+    if (mode == M_PATTERN) return;
+    
     switch (mode) {
         case M_PATTERN: screen_dirty = screen_refresh_pattern(); break;
         case M_PRESET_W: screen_dirty = screen_refresh_preset_w(); break;
@@ -1163,6 +1165,65 @@ void device_flip() {
 
 void reset_midi_counter() {
     midi_clock_counter = 0;
+}
+
+void screen_clr() {
+    for (size_t i = 0; i < 8; i++) {
+        region_fill(&line[i], 0);
+        region_draw(&line[i]);
+    }
+}
+
+static void set_led(uint16_t x, uint16_t y, uint8_t level) {
+    level = level & 15;
+    
+    line[y >> 3].data[((y & 0b111) << 7) + x] = level;
+    line[y >> 3].dirty = 1;
+}
+
+void screen_led(uint16_t x, uint16_t y, uint8_t level) {
+    // if (mode != M_LIVE) return;
+    if (x > 127) return;
+    if (y > 63) return;
+    
+    //set_led(x, y, level);
+    line[y >> 3].data[((y & 0b111) << 7) + x] = level;
+    line[y >> 3].dirty = 1;
+    region_draw(&line[y >> 3]);
+}
+
+static void grid_rectangle(s16 x, s16 y, s16 w, s16 h, u8 fill, u8 border) {
+    for (u16 col = max(0, x + 1); col < min(128, x + w - 1); col++)
+        for (u16 row = max(0, y + 1); row < min(64, y + h - 1); row++)
+            set_led(col, row, fill);
+
+    if (y >= 0 && y < 64)
+        for (u16 col = max(0, x); col < min(128, x + w); col++)
+            set_led(col, y, border);
+
+    s16 row = y + h - 1;
+    if (row >= 0 && row < 64)
+        for (u16 col = max(0, x); col < min(128, x + w); col++)
+            set_led(col, row, border);
+
+    if (x >= 0 && x < 128)
+        for (u16 row = max(0, y); row < min(64, y + h); row++)
+            set_led(x, row, border);
+
+    s16 col = x + w - 1;
+    if (col >= 0 && col < 128)
+        for (u16 row = max(0, y); row < min(64, y + h); row++)
+            set_led(col, row, border);
+}
+
+void screen_rec(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t fill, uint8_t border) {
+    grid_rectangle(x, y, w, h, fill, border);
+    for (size_t i = 0; i < 8; i++) region_draw(&line[i]);
+}
+
+void screen_rct(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t fill, uint8_t border) {
+    grid_rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1, fill, border);
+    for (size_t i = 0; i < 8; i++) region_draw(&line[i]);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
