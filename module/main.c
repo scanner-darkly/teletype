@@ -1108,6 +1108,10 @@ void tele_cv_off(uint8_t i, int16_t v) {
     aout[i].off = v;
 }
 
+uint16_t tele_get_cv(uint8_t i) {
+    return aout[(device_config.flip ? 3 - i : i)].now;
+}
+
 void tele_update_adc(u8 force) {
     if (!force && get_ticks() == last_adc_tick) return;
     last_adc_tick = get_ticks();

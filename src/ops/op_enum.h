@@ -164,6 +164,7 @@ typedef enum {
     E_OP_LIVE_V,
     E_OP_PRINT,
     E_OP_PRT,
+    E_OP_CV_GET,
     E_OP_ADD,
     E_OP_SUB,
     E_OP_MUL,

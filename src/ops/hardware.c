@@ -55,6 +55,8 @@ static void op_TR_TOG_get(const void *data, scene_state_t *ss, exec_state_t *es,
                           command_state_t *cs);
 static void op_TR_PULSE_get(const void *data, scene_state_t *ss,
                             exec_state_t *es, command_state_t *cs);
+static void op_CV_GET_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                          command_state_t *cs);
 static void op_CV_SET_get(const void *data, scene_state_t *ss, exec_state_t *es,
                           command_state_t *cs);
 static void op_MUTE_get(const void *data, scene_state_t *ss, exec_state_t *es,
@@ -94,6 +96,7 @@ const tele_op_t op_TR_TIME  = MAKE_GET_SET_OP(TR.TIME , op_TR_TIME_get , op_TR_T
 const tele_op_t op_TR_TOG   = MAKE_GET_OP    (TR.TOG  , op_TR_TOG_get  , 1, false);
 const tele_op_t op_TR_PULSE = MAKE_GET_OP    (TR.PULSE, op_TR_PULSE_get, 1, false);
 const tele_op_t op_TR_P     = MAKE_ALIAS_OP  (TR.P    , op_TR_PULSE_get, NULL, 1, false);
+const tele_op_t op_CV_GET   = MAKE_GET_OP    (CV.GET  , op_CV_GET_get  , 1, true);
 const tele_op_t op_CV_SET   = MAKE_GET_OP    (CV.SET  , op_CV_SET_get  , 2, false);
 const tele_op_t op_MUTE     = MAKE_GET_SET_OP(MUTE    , op_MUTE_get    , op_MUTE_set   , 1, true);
 const tele_op_t op_STATE    = MAKE_GET_OP    (STATE   , op_STATE_get   , 1, true );
@@ -222,7 +225,6 @@ static void op_CV_OFF_set(const void *NOTUSED(data), scene_state_t *ss,
                           exec_state_t *NOTUSED(es), command_state_t *cs) {
     int16_t a = cs_pop(cs);
     int16_t b = cs_pop(cs);
-    ss->variables.cv_off[a] = b;
     a--;
     if (a < 0)
         return;
@@ -456,6 +458,12 @@ static void op_TR_PULSE_get(const void *NOTUSED(data), scene_state_t *ss,
         uint8_t addr = II_ANSIBLE_ADDR + (((a - 4) >> 2) << 1);
         tele_ii_tx(addr, d, 2);
     }
+}
+
+static void op_CV_GET_get(const void *NOTUSED(data), scene_state_t *ss,
+                          exec_state_t *NOTUSED(es), command_state_t *cs) {
+    uint8_t i = cs_pop(cs) - 1;
+    cs_push(cs, i < 4 ? tele_get_cv(i) : 0);
 }
 
 static void op_CV_SET_get(const void *NOTUSED(data), scene_state_t *ss,

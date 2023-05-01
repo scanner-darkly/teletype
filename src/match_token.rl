@@ -175,6 +175,7 @@
         "TR.TOG"      => { MATCH_OP(E_OP_TR_TOG); };
         "TR.PULSE"    => { MATCH_OP(E_OP_TR_PULSE); };
         "TR.P"        => { MATCH_OP(E_OP_TR_P); };
+        "CV.GET"      => { MATCH_OP(E_OP_CV_GET); };
         "CV.SET"      => { MATCH_OP(E_OP_CV_SET); };
         "MUTE"        => { MATCH_OP(E_OP_MUTE); };
         "STATE"       => { MATCH_OP(E_OP_STATE); };

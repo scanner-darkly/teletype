@@ -55,6 +55,12 @@ void tele_cv_slew(uint8_t i, int16_t v) {
     printf("\n");
 }
 
+uint16_t tele_get_cv(uint8_t i) {
+    printf("CV_GET  i:%" PRIu8, i);
+    printf("\n");
+    return 0;
+}
+
 void tele_update_adc(uint8_t force) {
     printf("UPDATE ADC force:%s", force ? "true" : "false");
     printf("\n");

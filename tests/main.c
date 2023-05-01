@@ -22,6 +22,9 @@ void tele_tr_pulse_clear(uint8_t i) {}
 void tele_tr_pulse_time(uint8_t i, int16_t time) {}
 void tele_cv(uint8_t i, int16_t v, uint8_t s) {}
 void tele_cv_slew(uint8_t i, int16_t v) {}
+uint16_t tele_get_cv(uint8_t i) {
+    return 0;
+}
 void tele_update_adc(uint8_t force) {}
 void tele_has_delays(bool i) {}
 void tele_has_stack(bool i) {}

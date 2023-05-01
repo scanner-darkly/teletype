@@ -120,7 +120,7 @@ const char* help2[HELP2_LENGTH] = { "2/17 VARIABLES",
                                     "PRINT X",
                                     "    GET/PRINT VALUE" };
 
-#define HELP3_LENGTH 73
+#define HELP3_LENGTH 74
 const char* help3[HELP3_LENGTH] = { "3/17 PARAMETERS",
                                     " ",
                                     "TR A-D|SET TR VALUE (0,1)",
@@ -128,6 +128,7 @@ const char* help3[HELP3_LENGTH] = { "3/17 PARAMETERS",
                                     "CV 1-4|CV TARGET VALUE",
                                     "CV.SLEW 1-4|CV SLEW TIME (MS)",
                                     "CV.SET 1-4|SET CV (NO SLEW)",
+                                    "CV.GET 1-4|GET CURRENT CV",
                                     "CV.OFF 1-4|ADD CV OFFSET",
                                     " ",
                                     "IN|GET IN JACK VAL",

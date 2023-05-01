@@ -24,6 +24,13 @@ description = """
 Set the CV value at output `x` bypassing any slew settings.
 """
 
+["CV.GET"]
+prototype = "CV.GET x"
+short = "Get current CV value"
+description = """
+Get the current CV value at output `x` with slew and offset applied.
+"""
+
 ["CV.SLEW"]
 prototype = "CV.SLEW x"
 prototype_set = "CV.SLEW x y"
