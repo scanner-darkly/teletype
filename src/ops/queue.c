@@ -1,5 +1,7 @@
 #include "ops/queue.h"
+
 #include <stdlib.h>  // rand
+
 #include "helpers.h"
 #include "state.h"
 #include "teletype_io.h"

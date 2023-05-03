@@ -1321,19 +1321,19 @@ static void op_I2M_B_MODE_get(const void *data, scene_state_t *ss,
 }
 
 static void op_I2M_MUTE_get(const void *data, scene_state_t *ss,
-                           exec_state_t *es, command_state_t *cs) {
+                            exec_state_t *es, command_state_t *cs) {
     SEND_B1(13, midi_channel + 1);
     RECEIVE_AND_PUSH_S8;
 }
 
 static void op_I2M_MUTE_set(const void *data, scene_state_t *ss,
-                           exec_state_t *es, command_state_t *cs) {
+                            exec_state_t *es, command_state_t *cs) {
     s16 value = cs_pop(cs);
     SEND_B2(14, midi_channel + 1, value);
 }
 
 static void op_I2M_MUTE_POUND_get(const void *data, scene_state_t *ss,
-                           exec_state_t *es, command_state_t *cs) {
+                                  exec_state_t *es, command_state_t *cs) {
     s16 channel = cs_pop(cs);
     if (channel < 1 || channel > MAX_CHANNEL) {
         cs_push(cs, 0);
@@ -1344,7 +1344,7 @@ static void op_I2M_MUTE_POUND_get(const void *data, scene_state_t *ss,
 }
 
 static void op_I2M_MUTE_POUND_set(const void *data, scene_state_t *ss,
-                           exec_state_t *es, command_state_t *cs) {
+                                  exec_state_t *es, command_state_t *cs) {
     s16 channel = cs_pop(cs);
     s16 value = cs_pop(cs);
     RETURN_IF_OUT_OF_RANGE(channel, 0, MAX_CHANNEL);
@@ -1353,19 +1353,19 @@ static void op_I2M_MUTE_POUND_set(const void *data, scene_state_t *ss,
 }
 
 static void op_I2M_SOLO_get(const void *data, scene_state_t *ss,
-                           exec_state_t *es, command_state_t *cs) {
+                            exec_state_t *es, command_state_t *cs) {
     SEND_B1(15, midi_channel + 1);
     RECEIVE_AND_PUSH_S8;
 }
 
 static void op_I2M_SOLO_set(const void *data, scene_state_t *ss,
-                           exec_state_t *es, command_state_t *cs) {
+                            exec_state_t *es, command_state_t *cs) {
     s16 value = cs_pop(cs);
     SEND_B2(16, midi_channel + 1, value);
 }
 
 static void op_I2M_SOLO_POUND_get(const void *data, scene_state_t *ss,
-                           exec_state_t *es, command_state_t *cs) {
+                                  exec_state_t *es, command_state_t *cs) {
     s16 channel = cs_pop(cs);
     if (channel < 1 || channel > MAX_CHANNEL) {
         cs_push(cs, 0);
@@ -1376,7 +1376,7 @@ static void op_I2M_SOLO_POUND_get(const void *data, scene_state_t *ss,
 }
 
 static void op_I2M_SOLO_POUND_set(const void *data, scene_state_t *ss,
-                           exec_state_t *es, command_state_t *cs) {
+                                  exec_state_t *es, command_state_t *cs) {
     s16 channel = cs_pop(cs);
     s16 value = cs_pop(cs);
     RETURN_IF_OUT_OF_RANGE(channel, 0, MAX_CHANNEL);
