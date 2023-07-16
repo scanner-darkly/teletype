@@ -789,10 +789,14 @@
         "EX.V"        => { MATCH_OP(E_OP_EX_V); };
         "EX.VOX.O"    => { MATCH_OP(E_OP_EX_VOX_O); };
         "EX.VO"       => { MATCH_OP(E_OP_EX_VO); };
+        "EX.CH"       => { MATCH_OP(E_OP_EX_CH); };
+        "EX.#"        => { MATCH_OP(E_OP_EX_POUND); };
         "EX.NOTE"     => { MATCH_OP(E_OP_EX_NOTE); };
         "EX.N"        => { MATCH_OP(E_OP_EX_N); };
+        "EX.N#"       => { MATCH_OP(E_OP_EX_N_POUND); };
         "EX.NOTE.O"   => { MATCH_OP(E_OP_EX_NOTE_O); };
         "EX.NO"       => { MATCH_OP(E_OP_EX_NO); };
+        "EX.NO#"      => { MATCH_OP(E_OP_EX_NO_POUND); };
         "EX.ALLOFF"   => { MATCH_OP(E_OP_EX_ALLOFF); };
         "EX.AO"       => { MATCH_OP(E_OP_EX_AO); };
         "EX.T"        => { MATCH_OP(E_OP_EX_T); };

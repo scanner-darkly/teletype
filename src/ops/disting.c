@@ -109,10 +109,18 @@ static void op_EX_VOX_get(const void *data, scene_state_t *ss, exec_state_t *es,
                           command_state_t *cs);
 static void op_EX_VOX_O_get(const void *data, scene_state_t *ss,
                             exec_state_t *es, command_state_t *cs);
+static void op_EX_CH_get(const void *data, scene_state_t *ss,
+                         exec_state_t *es, command_state_t *cs);
+static void op_EX_CH_set(const void *data, scene_state_t *ss,
+                         exec_state_t *es, command_state_t *cs);
 static void op_EX_NOTE_get(const void *data, scene_state_t *ss,
                            exec_state_t *es, command_state_t *cs);
+static void op_EX_N_POUND_get(const void *data, scene_state_t *ss,
+                              exec_state_t *es, command_state_t *cs);
 static void op_EX_NOTE_O_get(const void *data, scene_state_t *ss,
                              exec_state_t *es, command_state_t *cs);
+static void op_EX_NO_POUND_get(const void *data, scene_state_t *ss,
+                               exec_state_t *es, command_state_t *cs);
 static void op_EX_ALLOFF_get(const void *data, scene_state_t *ss,
                              exec_state_t *es, command_state_t *cs);
 static void op_EX_T_get(const void *data, scene_state_t *ss, exec_state_t *es,
@@ -233,12 +241,16 @@ const tele_op_t op_EX_SB_START = MAKE_GET_OP(EX.SB.START,   op_EX_SB_START_get, 
 const tele_op_t op_EX_SB_STOP  = MAKE_GET_OP(EX.SB.STOP,    op_EX_SB_STOP_get,  0, false);
 const tele_op_t op_EX_SB_CONT  = MAKE_GET_OP(EX.SB.CONT,    op_EX_SB_CONT_get,  0, false);
 
-const tele_op_t op_EX_VOX      = MAKE_GET_OP(EX.VOX,        op_EX_VOX_get,      3, false);
-const tele_op_t op_EX_VOX_P    = MAKE_GET_OP(EX.VOX.P,      op_EX_VOX_P_get,    2, false);
-const tele_op_t op_EX_VOX_O    = MAKE_GET_OP(EX.VOX.O,      op_EX_VOX_O_get,    1, false);
-const tele_op_t op_EX_NOTE     = MAKE_GET_OP(EX.NOTE,       op_EX_NOTE_get,     2, false);
-const tele_op_t op_EX_NOTE_O   = MAKE_GET_OP(EX.NOTE.O,     op_EX_NOTE_O_get,   1, false);
-const tele_op_t op_EX_ALLOFF   = MAKE_GET_OP(EX.ALLOFF,     op_EX_ALLOFF_get,   0, false);
+const tele_op_t op_EX_VOX      = MAKE_GET_OP(EX.VOX,    op_EX_VOX_get,              3, false);
+const tele_op_t op_EX_VOX_P    = MAKE_GET_OP(EX.VOX.P,  op_EX_VOX_P_get,            2, false);
+const tele_op_t op_EX_VOX_O    = MAKE_GET_OP(EX.VOX.O,  op_EX_VOX_O_get,            1, false);
+const tele_op_t op_EX_CH       = MAKE_GET_SET_OP(EX.CH, op_EX_CH_get, op_EX_CH_set, 0, true);
+const tele_op_t op_EX_POUND    = MAKE_ALIAS_OP(EX.#,    op_EX_CH_get, op_EX_CH_set, 0, true);
+const tele_op_t op_EX_NOTE     = MAKE_GET_OP(EX.NOTE,   op_EX_NOTE_get,             2, false);
+const tele_op_t op_EX_N_POUND  = MAKE_GET_OP(EX.N#,     op_EX_N_POUND_get,          3, false);
+const tele_op_t op_EX_NOTE_O   = MAKE_GET_OP(EX.NOTE.O, op_EX_NOTE_O_get,           1, false);
+const tele_op_t op_EX_NO_POUND = MAKE_GET_OP(EX.NO#,    op_EX_NO_POUND_get,         2, false);
+const tele_op_t op_EX_ALLOFF   = MAKE_GET_OP(EX.ALLOFF, op_EX_ALLOFF_get,           0, false);
 
 const tele_op_t op_EX_LP_REC   = MAKE_GET_OP(EX.LP.REC,   op_EX_LP_REC_get,   1, false);
 const tele_op_t op_EX_LP_PLAY  = MAKE_GET_OP(EX.LP.PLAY,  op_EX_LP_PLAY_get,  1, false);
@@ -285,9 +297,10 @@ const tele_op_t op_EX_TV  = MAKE_ALIAS_OP(EX.TV,  op_EX_TV_get,     NULL, 2, fal
 // clang-format on
 
 static u8 unit = 0;
+static u8 note_channel = 1;
 static u8 midi_channel = 0;
 static u8 sb_channel = 0;
-static u8 data[4];
+static u8 data[5];
 
 static inline void send1(u8 cmd) {
     data[0] = cmd;
@@ -313,6 +326,15 @@ static inline void send4(u8 cmd, u8 b1, u8 b2, u8 b3) {
     data[2] = b2;
     data[3] = b3;
     tele_ii_tx(DISTING_EX_1 + unit, data, 4);
+}
+
+static inline void send4(u8 cmd, u8 b1, u8 b2, u8 b3, u8 b4) {
+    data[0] = cmd;
+    data[1] = b1;
+    data[2] = b2;
+    data[3] = b3;
+    data[4] = b4;
+    tele_ii_tx(DISTING_EX_1 + unit, data, 5);
 }
 
 static void mod_EX1_func(scene_state_t *ss, exec_state_t *es,
@@ -695,15 +717,40 @@ static u8 calculate_note(s16 pitch) {
     return (u8)note;
 }
 
+static void op_EX_CH_get(const void *NOTUSED(data), scene_state_t *ss,
+                           exec_state_t *NOTUSED(es), command_state_t *cs) {
+    cs_push(cs, note_channel);
+}
+
+static void op_EX_CH_set(const void *NOTUSED(data), scene_state_t *ss,
+                           exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 ch = cs_pop(cs);
+    if (ch < 1 || ch > 16) return;
+    note_channel = ch;
+}
+
 static void op_EX_NOTE_get(const void *NOTUSED(data), scene_state_t *ss,
                            exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 pitch = cs_pop(cs);
     u16 velocity = cs_pop(cs);
     u8 note = calculate_note(pitch);
 
-    send2(0x56, note);
-    send4(0x54, note, (u16)pitch >> 8, pitch);
-    send4(0x55, note, velocity >> 8, velocity);
+    send3(0x6A, note_channel, note);
+    send5(0x68, note_channel, note, (u16)pitch >> 8, pitch);
+    send5(0x69, note_channel, note, velocity >> 8, velocity);
+}
+
+static void op_EX_NOTE_POUND_get(const void *NOTUSED(data), scene_state_t *ss,
+                           exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 ch = cs_pop(cs);
+    s16 pitch = cs_pop(cs);
+    u16 velocity = cs_pop(cs);
+    u8 note = calculate_note(pitch);
+    if (ch < 1 || ch > 16) return;
+
+    send3(0x6A, ch, note);
+    send5(0x68, ch, note, (u16)pitch >> 8, pitch);
+    send5(0x69, ch, note, velocity >> 8, velocity);
 }
 
 static void op_EX_NOTE_O_get(const void *NOTUSED(data), scene_state_t *ss,
@@ -711,7 +758,17 @@ static void op_EX_NOTE_O_get(const void *NOTUSED(data), scene_state_t *ss,
     u16 pitch = cs_pop(cs);
     u8 note = calculate_note(pitch);
 
-    send2(0x56, note);
+    send2(0x6A, note_channel, note);
+}
+
+static void op_EX_NOTE_O_POUND_get(const void *NOTUSED(data), scene_state_t *ss,
+                             exec_state_t *NOTUSED(es), command_state_t *cs) {
+    s16 ch = cs_pop(cs);
+    u16 pitch = cs_pop(cs);
+    u8 note = calculate_note(pitch);
+    if (ch < 1 || ch > 16) return;
+
+    send2(0x6A, ch, note);
 }
 
 static void op_EX_ALLOFF_get(const void *NOTUSED(data), scene_state_t *ss,
