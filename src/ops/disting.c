@@ -328,7 +328,7 @@ static inline void send4(u8 cmd, u8 b1, u8 b2, u8 b3) {
     tele_ii_tx(DISTING_EX_1 + unit, data, 4);
 }
 
-static inline void send4(u8 cmd, u8 b1, u8 b2, u8 b3, u8 b4) {
+static inline void send5(u8 cmd, u8 b1, u8 b2, u8 b3, u8 b4) {
     data[0] = cmd;
     data[1] = b1;
     data[2] = b2;
@@ -740,7 +740,7 @@ static void op_EX_NOTE_get(const void *NOTUSED(data), scene_state_t *ss,
     send5(0x69, note_channel, note, velocity >> 8, velocity);
 }
 
-static void op_EX_NOTE_POUND_get(const void *NOTUSED(data), scene_state_t *ss,
+static void op_EX_N_POUND_get(const void *NOTUSED(data), scene_state_t *ss,
                            exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 ch = cs_pop(cs);
     s16 pitch = cs_pop(cs);
@@ -758,17 +758,17 @@ static void op_EX_NOTE_O_get(const void *NOTUSED(data), scene_state_t *ss,
     u16 pitch = cs_pop(cs);
     u8 note = calculate_note(pitch);
 
-    send2(0x6A, note_channel, note);
+    send3(0x6A, note_channel, note);
 }
 
-static void op_EX_NOTE_O_POUND_get(const void *NOTUSED(data), scene_state_t *ss,
+static void op_EX_NO_POUND_get(const void *NOTUSED(data), scene_state_t *ss,
                              exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 ch = cs_pop(cs);
     u16 pitch = cs_pop(cs);
     u8 note = calculate_note(pitch);
     if (ch < 1 || ch > 16) return;
 
-    send2(0x6A, ch, note);
+    send3(0x6A, ch, note);
 }
 
 static void op_EX_ALLOFF_get(const void *NOTUSED(data), scene_state_t *ss,
