@@ -103,15 +103,28 @@ prototype = "EX.VOX.O x"
 aliases = ["EX.VO"]
 short = "send a note off to voice `x`"
 
+["EX.CH"]
+prototype = "EX.CH x"
+aliases = ["EX.#"]
+short = "select default note channel (for multi channel algorithms like Poly FM)"
+
 ["EX.NOTE"]
 prototype = "EX.NOTE x y"
 aliases = ["EX.N"]
 short = "send a note using pitch `x` and velocity `y` (voice allocated by the Disting)"
 
+["EX.N#"]
+prototype = "EX.N# x y z"
+short = "send a note to channel `x` using pitch `y` and velocity `z` (voice allocated by the Disting)"
+
 ["EX.NOTE.O"]
 prototype = "EX.NOTE.O x"
 aliases = ["EX.NO"]
 short = "send a note off using pitch `x`"
+
+["EX.NO#"]
+prototype = "EX.NO# x y"
+short = "send a note off to channel `x` using pitch `y`"
 
 ["EX.ALLOFF"]
 prototype = "EX.ALLOFF"
