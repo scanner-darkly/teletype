@@ -109,10 +109,10 @@ static void op_EX_VOX_get(const void *data, scene_state_t *ss, exec_state_t *es,
                           command_state_t *cs);
 static void op_EX_VOX_O_get(const void *data, scene_state_t *ss,
                             exec_state_t *es, command_state_t *cs);
-static void op_EX_CH_get(const void *data, scene_state_t *ss,
-                         exec_state_t *es, command_state_t *cs);
-static void op_EX_CH_set(const void *data, scene_state_t *ss,
-                         exec_state_t *es, command_state_t *cs);
+static void op_EX_CH_get(const void *data, scene_state_t *ss, exec_state_t *es,
+                         command_state_t *cs);
+static void op_EX_CH_set(const void *data, scene_state_t *ss, exec_state_t *es,
+                         command_state_t *cs);
 static void op_EX_NOTE_get(const void *data, scene_state_t *ss,
                            exec_state_t *es, command_state_t *cs);
 static void op_EX_N_POUND_get(const void *data, scene_state_t *ss,
@@ -718,12 +718,12 @@ static u8 calculate_note(s16 pitch) {
 }
 
 static void op_EX_CH_get(const void *NOTUSED(data), scene_state_t *ss,
-                           exec_state_t *NOTUSED(es), command_state_t *cs) {
+                         exec_state_t *NOTUSED(es), command_state_t *cs) {
     cs_push(cs, note_channel);
 }
 
 static void op_EX_CH_set(const void *NOTUSED(data), scene_state_t *ss,
-                           exec_state_t *NOTUSED(es), command_state_t *cs) {
+                         exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 ch = cs_pop(cs);
     if (ch < 1 || ch > 16) return;
     note_channel = ch;
@@ -741,7 +741,7 @@ static void op_EX_NOTE_get(const void *NOTUSED(data), scene_state_t *ss,
 }
 
 static void op_EX_N_POUND_get(const void *NOTUSED(data), scene_state_t *ss,
-                           exec_state_t *NOTUSED(es), command_state_t *cs) {
+                              exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 ch = cs_pop(cs);
     s16 pitch = cs_pop(cs);
     u16 velocity = cs_pop(cs);
@@ -762,7 +762,7 @@ static void op_EX_NOTE_O_get(const void *NOTUSED(data), scene_state_t *ss,
 }
 
 static void op_EX_NO_POUND_get(const void *NOTUSED(data), scene_state_t *ss,
-                             exec_state_t *NOTUSED(es), command_state_t *cs) {
+                               exec_state_t *NOTUSED(es), command_state_t *cs) {
     s16 ch = cs_pop(cs);
     u16 pitch = cs_pop(cs);
     u8 note = calculate_note(pitch);
