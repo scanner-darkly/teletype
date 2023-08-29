@@ -32,6 +32,7 @@
 - **FIX**: N.CS scales 7 & 8 were incorrectly swapped; make them consistent with N.S and docs
 - **FIX**: libavr32 update: support CDC grid size detection (e.g. zero), increase HID message buffer
 - **NEW**: new Disting EX ops: `EX.CH`, `EX.#`, `EX.N#`, `EX.NO#`
+- **NEW**: apply VCV Rack compatibility patches, so branches off main can be used in both hardware and software
 
 ## v4.0.0
 
