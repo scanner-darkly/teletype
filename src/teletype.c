@@ -375,6 +375,8 @@ void tele_tick(scene_state_t *ss, uint8_t time) {
                 es_variables(&es)->delayed = true;
                 es_variables(&es)->script_number = ss->delay.origin_script[i];
                 es_variables(&es)->i = ss->delay.origin_i[i];
+                es_variables(&es)->fparam1 = ss->delay.origin_fparam1[i];
+                es_variables(&es)->fparam2 = ss->delay.origin_fparam2[i];
 
                 run_script_with_exec_state(ss, &es, DELAY_SCRIPT);
 

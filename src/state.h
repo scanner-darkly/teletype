@@ -133,6 +133,8 @@ typedef struct {
     int16_t time[DELAY_SIZE];
     uint8_t origin_script[DELAY_SIZE];
     int16_t origin_i[DELAY_SIZE];
+    int16_t origin_fparam1[DELAY_SIZE];
+    int16_t origin_fparam2[DELAY_SIZE];
     uint8_t count;
 } scene_delay_t;
 
