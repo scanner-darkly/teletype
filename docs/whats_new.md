@@ -31,6 +31,7 @@
 - **FIX**: libavr32 update: support CDC grid size detection (e.g. zero), increase HID message buffer
 - **NEW**: new Disting EX ops: `EX.CH`, `EX.#`, `EX.N#`, `EX.NO#`
 - **NEW**: apply VCV Rack compatibility patches, so branches off main can be used in both hardware and software
+- **FIX**: update Disting EX looper ops to work with Disting EX firmware 1.23+
 
 ## v4.0.0
 

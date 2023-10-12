@@ -799,10 +799,10 @@ static void op_EX_LP_REC_get(const void *NOTUSED(data), scene_state_t *ss,
     s16 loop = cs_pop(cs);
     if (loop < 1 || loop > 4) return;
 
-    send4(0x46, 7, 0, loop);
-    send4(0x46, 56, 0, 0);
-    send4(0x46, 56, 0, 1);
-    send4(0x46, 56, 0, 0);
+    send4(0x6C, 7, 0, loop);
+    send4(0x6C, 55, 0, 0);
+    send4(0x6C, 55, 0, 1);
+    send4(0x6C, 55, 0, 0);
 }
 
 static void op_EX_LP_PLAY_get(const void *NOTUSED(data), scene_state_t *ss,
@@ -810,10 +810,10 @@ static void op_EX_LP_PLAY_get(const void *NOTUSED(data), scene_state_t *ss,
     s16 loop = cs_pop(cs);
     if (loop < 1 || loop > 4) return;
 
-    send4(0x46, 7, 0, loop);
-    send4(0x46, 57, 0, 0);
-    send4(0x46, 57, 0, 1);
-    send4(0x46, 57, 0, 0);
+    send4(0x6C, 7, 0, loop);
+    send4(0x6C, 56, 0, 0);
+    send4(0x6C, 56, 0, 1);
+    send4(0x6C, 56, 0, 0);
 }
 
 static void op_EX_LP_REV_get(const void *NOTUSED(data), scene_state_t *ss,
@@ -821,10 +821,10 @@ static void op_EX_LP_REV_get(const void *NOTUSED(data), scene_state_t *ss,
     s16 loop = cs_pop(cs);
     if (loop < 1 || loop > 4) return;
 
-    send4(0x46, 7, 0, loop);
-    send4(0x46, 58, 0, 0);
-    send4(0x46, 58, 0, 1);
-    send4(0x46, 58, 0, 0);
+    send4(0x6C, 7, 0, loop);
+    send4(0x6C, 57, 0, 0);
+    send4(0x6C, 57, 0, 1);
+    send4(0x6C, 57, 0, 0);
 }
 
 static void op_EX_LP_DOWN_get(const void *NOTUSED(data), scene_state_t *ss,
@@ -832,10 +832,10 @@ static void op_EX_LP_DOWN_get(const void *NOTUSED(data), scene_state_t *ss,
     s16 loop = cs_pop(cs);
     if (loop < 1 || loop > 4) return;
 
-    send4(0x46, 7, 0, loop);
-    send4(0x46, 62, 0, 0);
-    send4(0x46, 62, 0, 1);
-    send4(0x46, 62, 0, 0);
+    send4(0x6C, 7, 0, loop);
+    send4(0x6C, 58, 0, 0);
+    send4(0x6C, 58, 0, 1);
+    send4(0x6C, 58, 0, 0);
 }
 
 static void op_EX_LP_CLR_get(const void *NOTUSED(data), scene_state_t *ss,
@@ -843,7 +843,7 @@ static void op_EX_LP_CLR_get(const void *NOTUSED(data), scene_state_t *ss,
     s16 loop = cs_pop(cs);
     if (loop < 1 || loop > 4) return;
 
-    send4(0x46, 7, 0, loop);
+    send4(0x6C, 7, 0, loop);
     send1(0x58);
 }
 
