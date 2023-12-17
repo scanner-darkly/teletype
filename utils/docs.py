@@ -59,6 +59,7 @@ OPS_SECTIONS = [
     "wslash",
     "matrixarchate",
     "disting",
+    "wslash_shared",
     "wslashdelay",
     "wslashsynth",
     "wslashtape",
